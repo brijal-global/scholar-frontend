@@ -5,8 +5,8 @@ import NextTopLoader from "nextjs-toploader";
 import AntdProvider from "@/providers/AntdProvider";
 
 export const metadata: Metadata = {
-  title: "Scholar",
-  description: "Scholar",
+  title: "Scholar | Partner for managing your school",
+  description: "Scholar | Partner for managing your school",
 };
 
 const manrope = Manrope({
@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className={`${manrope.className} bg-[#F1F1F1]`}>
         <AntdProvider>
           <NextTopLoader
-            color="#29935c"
+            color="#0074d9"
             initialPosition={0.08}
             crawlSpeed={100}
             height={3}
@@ -32,7 +32,7 @@ export default function RootLayout({
             showSpinner={false}
             easing="linear"
             speed={100}
-            shadow="0 0 10px #29935c,0 0 5px #29935c"
+            shadow="0 0 10px #0074d9,0 0 5px #0074d9"
             template='<div class="bar" role="bar"><div class="peg"></div></div> 
          <div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
             zIndex={1600}

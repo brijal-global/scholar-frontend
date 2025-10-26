@@ -98,6 +98,9 @@ jobs:
               exit 1
             fi
 
+            # Build the image first
+            sudo docker compose --env-file=.env -p ${{ env.BUILD_NAME }} build
+
             # Stop the existing app containers
             sudo docker rm -f ${{ env.PROJECT_NAME }}-${{ env.NODE_ENV }}
 
@@ -106,5 +109,5 @@ jobs:
 
             # Deploy with Docker Compose
             echo "Deploying with Docker Compose... ${{ env.BUILD_NAME }}"
-            sudo docker compose --env-file=.env -p ${{ env.BUILD_NAME }} up -d --build --force-recreate
+            sudo docker compose --env-file=.env -p ${{ env.BUILD_NAME }} up -d
           EOF
