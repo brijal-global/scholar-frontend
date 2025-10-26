@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #0074d9;
+  --color-primary-dark: #03569e;
+  --color-secondary: #3e7cb1;
+  --color-secondary-dark: #2b5a82;
+  --color-secondary-light: #509ad9;
+  --color-blackish: #252c32;
+  --color-grayish: #606060;
+  --color-placeholder: #c6c6c6e5;
+}
+
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
+@utility component-px {
+  @apply px-8 md:px-16 lg:px-32;
+}
+
+@utility component-py {
+  @apply py-8 lg:py-10;
+}
+
+* {
+  scroll-behavior: smooth;
+}
+
+input,
+select,
+textarea {
+  @apply focus:outline-1 outline-gray-300;
+}
+
+.ant-input-number .ant-input-number-input {
+  padding: 0 !important;
+}
+.ant-switch-checked {
+  background-color: var(--color-primary) !important;
+}

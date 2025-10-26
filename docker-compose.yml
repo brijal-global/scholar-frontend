@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_PORT: ${APP_PORT}
+    image: ${APP_NAME}-${NODE_ENV}:latest
+    container_name: ${APP_NAME}-${NODE_ENV}
+    restart: unless-stopped
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${APP_PORT}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: ${MAX_MEMORY}M
+        reservations:
+          memory: ${MIN_MEMORY}M
+    networks:
+      - ${APP_NAME}-network
+
+networks:
+  scholar-frontend-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
