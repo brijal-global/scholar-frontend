@@ -99,7 +99,7 @@ jobs:
             fi
 
             # Build the image first
-            sudo docker compose --env-file=.env -p ${{ env.BUILD_NAME }} build
+            sudo docker compose --env-file=.env -p ${{ env.BUILD_NAME }} build --no-cache
 
             # Stop the existing app containers
             sudo docker rm -f ${{ env.PROJECT_NAME }}-${{ env.NODE_ENV }}

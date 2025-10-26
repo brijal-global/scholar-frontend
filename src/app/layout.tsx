@@ -5,8 +5,9 @@ import NextTopLoader from "nextjs-toploader";
 import AntdProvider from "@/providers/AntdProvider";
 
 export const metadata: Metadata = {
-  title: "Scholar | Partner for managing your school",
-  description: "Scholar | Partner for managing your school",
+  title: "Scholar | Your partner for managing the school | By Fleebug Inc.",
+  description:
+    "Scholar | Your partner for managing the school | By Fleebug Inc.",
 };
 
 const manrope = Manrope({
