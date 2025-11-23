@@ -3,8 +3,8 @@
 import { createContext } from "react";
 
 export interface AuthContextType {
-  isSignedIn: boolean;
-  setIsSignedIn: (value: boolean) => void;
+  signedInStatus: boolean | null;
+  setSignedInStatus: (value: boolean) => void;
   signOut: () => Promise<boolean>;
   signIn: (data: any) => Promise<any>;
   userData: any;

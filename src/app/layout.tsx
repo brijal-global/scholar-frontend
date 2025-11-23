@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Poppins } from "next/font/google";
 import "../styles/globals.css";
 import NextTopLoader from "nextjs-toploader";
 import AntdProvider from "@/providers/AntdProvider";
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
     "Scholar | Your partner for managing the school | By Fleebug Inc.",
 };
 
-const manrope = Manrope({
+const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 export default function RootLayout({
@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${manrope.className} bg-[#F1F1F1]`}>
+      <body className={`${poppins.className} bg-[#F1F1F1]`}>
         <AntdProvider>
           <NextTopLoader
             color="#0074d9"

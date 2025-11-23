@@ -72,7 +72,7 @@ const fetchApi = async (
     const response = error?.response as any;
     error.message =
       response?.data?.message || error?.message || "Something went wrong!";
-    throw error;
+    return error;
   }
 };
 

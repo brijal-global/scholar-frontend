@@ -8,6 +8,4 @@ const envConfigs = {
   API_URL: `${process.env.NEXT_PUBLIC_BE_URL}/api`,
 };
 
-console.log("envConfigs: ", envConfigs);
-
 export default envConfigs;

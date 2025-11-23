@@ -4,7 +4,6 @@ import {
   secondarySidebarItems,
 } from "@/components/consultancy/common/items";
 import { useEffect, useRef, useState } from "react";
-import Icon from "@/assets/icons/UniversityIcon.svg";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -45,14 +44,14 @@ const Navbar = ({ pathname }: { pathname: string }) => {
       heading: "Yonsei University",
       notification: "Your application has been submitted successfully.",
       time: "Just now",
-      icon: Icon,
+      // icon: Icon,
     },
     {
       id: "2",
       heading: "Yonsei University",
       notification: "Your application has been submitted successfully.",
       time: "Just now",
-      icon: Icon,
+      // icon: Icon,
     },
   ];
 
@@ -120,12 +119,12 @@ const Navbar = ({ pathname }: { pathname: string }) => {
                 key={notification.id}
                 className="flex space-x-2 items-center gap-2 py-2.5 px-4 rounded-lg duration-200 !transition-all text-sm"
               >
-                <Image
+                {/* <Image
                   src={notification.icon}
                   alt="University Icon"
                   width={50}
                   height={50}
-                />
+                /> */}
                 <div className="flex flex-col">
                   <p>{notification.heading}</p>
                   <p className="text-sm">{notification.notification}</p>

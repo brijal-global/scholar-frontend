@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { type ReactNode, useEffect, useState } from "react";
-import useFetch from "@/hooks/useFetch";
-import fetchApi from "@/lib/axios";
 import { useRouter } from "next/navigation";
 import { AuthContext } from "@/contexts/AuthContext";
+import useFetch from "@/hooks/useFetch";
+import fetchApi from "@/lib/axios";
+import { authEndpoints } from "@/configs/api-endpoints.config";
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
-  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+  const [signedInStatus, setSignedInStatus] = useState<boolean | null>(null);
 
   const signOut = async () => {
     try {
-      const res = await fetchApi("/auth/signout");
+      const res = await fetchApi(authEndpoints.signOut);
       if (res?.success) {
-        setIsSignedIn(false);
+        setSignedInStatus(false);
         refetch();
         router.push("/auth/sign-in");
       }
@@ -28,12 +29,12 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (data: any) => {
     try {
-      const res = await fetchApi("/auth/signin", {
+      const res = await fetchApi(authEndpoints.signIn, {
         method: "POST",
         body: data,
       });
       if (res?.success) {
-        setIsSignedIn(true);
+        setSignedInStatus(true);
         refetch();
       }
       return res;
@@ -47,19 +48,24 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     fetchData: refetch,
     loading,
     isFinished,
-  } = useFetch("/auth/me") as any;
+  } = useFetch(authEndpoints.me) as any;
 
   useEffect(() => {
-    if (userData) setIsSignedIn(!!userData);
-  }, [userData]);
+    if (isFinished) {
+      setTimeout(() => {
+        console.log("userData: ", userData);
+        setSignedInStatus(!!userData);
+      }, 10);
+    }
+  }, [userData, isFinished]);
 
   return (
     <AuthContext.Provider
       value={{
-        isSignedIn,
+        signedInStatus,
         loading,
         isFinished,
-        setIsSignedIn,
+        setSignedInStatus,
         userData,
         signOut,
         signIn,

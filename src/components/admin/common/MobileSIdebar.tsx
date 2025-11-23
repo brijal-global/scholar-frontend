@@ -19,7 +19,9 @@ const MobileSidebar = ({ pathname }: { pathname: string }) => {
   };
 
   useEffect(() => {
-    setOpen(false);
+    setTimeout(() => {
+      setOpen(false);
+    }, 0);
   }, [pathname]);
 
   return (

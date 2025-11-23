@@ -42,7 +42,7 @@ const useFetch = <T,>(
             error?.message ||
             "An error occurred!"
         );
-        console.error(error);
+        console.log(error);
       }
     } finally {
       setReloading(false);
