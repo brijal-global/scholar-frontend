@@ -1,106 +1,62 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, {
   Method,
-  RawAxiosRequestHeaders,
-  AxiosResponse,
   ResponseType,
+  InternalAxiosRequestConfig,
+  RawAxiosRequestHeaders,
 } from "axios";
 import envConfigs from "@/configs/env.config";
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: envConfigs.API_URL,
   withCredentials: true,
 });
 
-const isFile = (value: unknown): boolean => {
-  return (
-    value instanceof File ||
-    value instanceof Blob ||
-    (value !== null &&
-      typeof value === "object" &&
-      "name" in value &&
-      "type" in value &&
-      "size" in value)
-  );
-};
+// Request interceptor
+axiosInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig<any>) => {
+    const body = config.data;
 
-const containsFiles = (obj: Record<string, unknown>): boolean => {
-  if (!obj || typeof obj !== "object") return false;
-
-  for (const key in obj) {
-    if (isFile(obj[key])) {
-      return true;
-    } else if (obj[key] !== null && typeof obj[key] === "object") {
-      if (containsFiles(obj[key] as Record<string, unknown>)) return true;
-    }
-  }
-
-  return false;
-};
-
-interface RecursiveObject {
-  [key: string]: unknown | RecursiveObject | Array<unknown | RecursiveObject>;
-}
-
-const objectToFormData = (obj: RecursiveObject): FormData => {
-  const formData = new FormData();
-
-  for (const key in obj) {
-    if (obj[key] !== undefined) {
-      if (Array.isArray(obj[key])) {
-        (obj[key] as unknown[]).forEach((item, index) => {
-          if (isFile(item)) {
-            formData.append(`${key}`, item as Blob);
-          } else if (item !== null && typeof item === "object") {
-            formData.append(`${key}[${index}]`, JSON.stringify(item));
-          } else {
-            formData.append(`${key}[${index}]`, String(item));
-          }
-        });
-      } else if (isFile(obj[key])) {
-        formData.append(key, obj[key] as Blob);
-      } else if (obj[key] !== null && typeof obj[key] === "object") {
-        formData.append(key, JSON.stringify(obj[key]));
-      } else {
-        formData.append(key, String(obj[key]));
-      }
-    }
-  }
-
-  return formData;
-};
-
-const hitApi = async (
-  url: string,
-  method = "GET" as Method,
-  body = null as unknown | null,
-  headers = {} as RawAxiosRequestHeaders,
-  responseType = "json" as ResponseType,
-  timeout = 20000 as number
-) => {
-  try {
-    // Convert object with files to FormData and set correct headers
-    if (
-      body &&
-      typeof body === "object" &&
-      !Array.isArray(body) &&
-      !(body instanceof FormData)
-    ) {
-      if (containsFiles(body as Record<string, unknown>)) {
-        body = objectToFormData(body as RecursiveObject);
-        headers = {
-          ...headers,
-          "Content-Type": "multipart/form-data",
-        };
-      }
-    }
-
-    // Handle FormData directly
     if (body instanceof FormData) {
-      headers = {
-        ...headers,
-        "Content-Type": "multipart/form-data",
-      };
+      // FormData sets its own Content-Type with boundary
+      if (!config.headers["Content-Type"]) {
+        config.headers["Content-Type"] = "multipart/form-data";
+      }
+    } else if (body && typeof body === "object" && containsFiles(body)) {
+      // Handle objects containing files
+      const formData = new FormData();
+      convertObjectToFormData(body, formData);
+      config.data = formData;
+      config.headers["Content-Type"] = "multipart/form-data";
     }
+
+    return config;
+  },
+  (error: any) => Promise.reject(error)
+);
+
+const fetchApi = async (
+  url: string,
+  {
+    method = "GET",
+    body = undefined,
+    headers = {},
+    signal = undefined,
+    timeout = 30000,
+    responseType = "json",
+    withCredentials = true,
+  }: {
+    method?: Method;
+    body?: undefined | null | object;
+    headers?: RawAxiosRequestHeaders;
+    signal?: AbortSignal;
+    timeout?: number;
+    responseType?: ResponseType;
+    withCredentials?: boolean;
+  } = {}
+): Promise<any> => {
+  try {
+    method = method?.toUpperCase() as Method;
     const response = (await axiosInstance({
       url,
       method,
@@ -108,18 +64,75 @@ const hitApi = async (
       headers,
       responseType,
       timeout,
-      withCredentials: true, // Important for sending cookies
-    })) as AxiosResponse;
-
-    return await response?.data;
-  } catch (error: unknown) {
-    if (error && typeof error === "object" && "response" in error) {
-      return (
-        (error as { response?: { data: unknown } })?.response?.data || error
-      );
-    }
-    return error;
+      withCredentials,
+      signal,
+    })) as any;
+    return response;
+  } catch (error: any) {
+    const response = error?.response as any;
+    error.message =
+      response?.data?.message || error?.message || "Something went wrong!";
+    throw error;
   }
 };
 
-export default hitApi;
+export default fetchApi;
+
+const convertObjectToFormData = (
+  obj: any,
+  formData: FormData,
+  parentKey = ""
+) => {
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const value = obj[key];
+      const formKey = parentKey ? `${parentKey}[${key}]` : key;
+
+      if (value instanceof File || value instanceof Blob) {
+        formData.append(formKey, value);
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          const arrayKey = `${formKey}[${index}]`;
+          if (item instanceof File || item instanceof Blob) {
+            formData.append(arrayKey, item);
+          } else if (typeof item === "object") {
+            convertObjectToFormData(item, formData, arrayKey);
+          } else {
+            formData.append(arrayKey, item);
+          }
+        });
+      } else if (typeof value === "object" && value !== null) {
+        convertObjectToFormData(value, formData, formKey);
+      } else {
+        formData.append(formKey, value);
+      }
+    }
+  }
+};
+
+const isFile = (value: any) => {
+  return (
+    value instanceof File ||
+    value instanceof Blob ||
+    (value !== null &&
+      typeof value === "object" &&
+      typeof value.name === "string" &&
+      typeof value.type === "string" &&
+      typeof value.size === "number" &&
+      value.constructor.name === "File")
+  );
+};
+
+const containsFiles = (obj: any) => {
+  if (!obj || typeof obj !== "object") return false;
+
+  for (const key in obj) {
+    if (isFile(obj[key])) {
+      return true;
+    } else if (obj[key] !== null && typeof obj[key] === "object") {
+      if (containsFiles(obj[key])) return true;
+    }
+  }
+
+  return false;
+};

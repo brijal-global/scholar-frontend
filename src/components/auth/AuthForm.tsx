@@ -7,7 +7,7 @@ import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { EyeFreeIcons, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { PrimaryButton } from "../ui/Buttons";
-import hitApi from "@/lib/axios";
+import fetchApi from "@/lib/axios";
 import { toast } from "react-toastify";
 
 const AuthForm = ({ action }: { action: string | null }) => {
@@ -99,9 +99,9 @@ const AuthForm = ({ action }: { action: string | null }) => {
 
   useEffect(() => {
     if (action === "sign-in") {
-      setAuthType("sign-in");
+      // setAuthType("sign-in");
     } else if (action === "sign-up") {
-      setAuthType("sign-up");
+      // setAuthType("sign-up");
     } else {
       router.push("/auth?action=sign-in");
     }
@@ -125,10 +125,12 @@ const AuthForm = ({ action }: { action: string | null }) => {
     }
 
     try {
-      const res = await hitApi(
+      const res = await fetchApi(
         actions.find((action) => action.value === authType)?.endpoint || "",
-        "POST",
-        payload
+        {
+          method: "POST",
+          body: payload,
+        }
       );
       console.log(res);
       if (res?.ok || res?.success || res?.status === 200) {
