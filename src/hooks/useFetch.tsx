@@ -31,18 +31,17 @@ const useFetch = <T,>(
         responseType,
         timeout,
       });
-      // console.info("response", response);
       setData(response?.data);
     } catch (error: any) {
       if (axios.isCancel(error)) {
-        console.error("Request cancelled 'useFetch'");
+        console.warn("Request cancelled 'useFetch'");
       } else {
         setErr(
           error?.response?.data?.message ||
             error?.message ||
             "An error occurred!"
         );
-        console.log(error);
+        console.warn(error);
       }
     } finally {
       setReloading(false);

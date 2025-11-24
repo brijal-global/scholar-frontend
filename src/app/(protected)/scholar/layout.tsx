@@ -1,12 +1,12 @@
 "use client";
 
-import Navbar from "@/components/admin/common/Navbar";
-import Footer from "@/components/admin/common/Footer";
-import DesktopSidebar from "@/components/admin/common/DesktopSIdebar";
-import MobileSidebar from "@/components/admin/common/MobileSIdebar";
+import Navbar from "@/components/scholar/common/Navbar";
+import Footer from "@/components/scholar/common/Footer";
+import DesktopSidebar from "@/components/scholar/common/DesktopSIdebar";
 import { usePathname } from "next/navigation";
+import MobileSidebar from "@/components/scholar/common/MobileSidebar";
 
-export default function AdminLayout({
+export default function ScholarLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

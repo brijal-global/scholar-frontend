@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import AuthProvider from "@/providers/AuthProvider";
 import { useAuth } from "@/hooks/useAuth";
 import Loader from "@/components/ui/Loader";
+import { ToastContainer } from "react-toastify";
+import { Bounce } from "react-toastify";
 
 export default function ProtectedLayout({
   children,
@@ -52,13 +54,13 @@ export function ProtectedLayoutWrapper({
     }
   }, [signedInStatus, pathname, userData, router]);
 
-  console.log(
-    !isFinished,
-    signedInStatus !== true && signedInStatus !== false,
-    "......",
-    isFinished,
-    signedInStatus
-  );
+  // console.log(
+  //   !isFinished,
+  //   signedInStatus !== true && signedInStatus !== false,
+  //   "......",
+  //   isFinished,
+  //   signedInStatus
+  // );
 
   if (
     !isFinished ||
@@ -68,5 +70,22 @@ export function ProtectedLayoutWrapper({
     return <Loader />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        hideProgressBar
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
+    </>
+  );
 }

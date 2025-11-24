@@ -23,7 +23,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       return res?.success;
     } catch (error) {
-      console.error("Error during logout: ", error);
+      console.warn("Error during logout: ", error);
     }
   };
 

@@ -1,5 +1,8 @@
 export const authEndpoints = {
+  me: "/auth/me",
   signIn: "/auth/signin",
   signOut: "/auth/signout",
-  me: "/auth/me",
+  forgetPassword: "/auth/forget-password",
+  resetPassword: "/auth/reset-password",
+  verifyEmail: "/auth/verify-email",
 };
