@@ -8,7 +8,6 @@ export interface AuthContextType {
   signOut: () => Promise<boolean>;
   signIn: (data: any) => Promise<any>;
   userData: any;
-  loading: boolean;
   refetch: () => void;
   isFinished: boolean;
 }

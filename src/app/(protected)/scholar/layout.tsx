@@ -4,9 +4,7 @@ import Navbar from "@/components/admin/common/Navbar";
 import Footer from "@/components/admin/common/Footer";
 import DesktopSidebar from "@/components/admin/common/DesktopSIdebar";
 import MobileSidebar from "@/components/admin/common/MobileSIdebar";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
-import Loader from "@/components/ui/Loader";
+import { usePathname } from "next/navigation";
 
 export default function AdminLayout({
   children,
@@ -14,17 +12,6 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const { loading, signedInStatus, userData } = useAuth();
-
-  if (loading || (signedInStatus !== true && signedInStatus !== false)) {
-    return <Loader />;
-  }
-
-  if (userData?.role?.name === "organizationEmployee") {
-    router.push("/auth/sign-in");
-  }
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 h-dvh overflow-hidden">

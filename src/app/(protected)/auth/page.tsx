@@ -1,17 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Loader from "@/components/ui/Loader";
 
 const AuthPage = () => {
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!router) return;
-    router.push("/auth/sign-in");
-  }, [router]);
-
+  // This page is for redirection only. Showing loader till the layout decides were to forward the user.
   return <Loader />;
 };
 

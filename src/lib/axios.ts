@@ -67,12 +67,9 @@ const fetchApi = async (
       withCredentials,
       signal,
     })) as any;
-    return response;
+    return response?.data || response;
   } catch (error: any) {
-    const response = error?.response as any;
-    error.message =
-      response?.data?.message || error?.message || "Something went wrong!";
-    return error;
+    return error?.response?.data || error;
   }
 };
 

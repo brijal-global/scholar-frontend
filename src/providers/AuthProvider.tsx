@@ -39,21 +39,19 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       return res;
     } catch (error) {
-      console.error("Error during login: ", error);
+      return error;
     }
   };
 
   const {
     data: userData,
     fetchData: refetch,
-    loading,
     isFinished,
   } = useFetch(authEndpoints.me) as any;
 
   useEffect(() => {
     if (isFinished) {
       setTimeout(() => {
-        console.log("userData: ", userData);
         setSignedInStatus(!!userData);
       }, 10);
     }
@@ -63,7 +61,6 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     <AuthContext.Provider
       value={{
         signedInStatus,
-        loading,
         isFinished,
         setSignedInStatus,
         userData,
