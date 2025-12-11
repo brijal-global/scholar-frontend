@@ -10,10 +10,10 @@ const useFetch = <T,>(url: string, options: any = undefined) => {
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [reloading, setReloading] = useState<boolean>(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const hitApi = useCallback(async () => {
-    setErr(null);
+    setError(null);
     setLoading(true);
     setReloading(true);
     setIsFinished(false);
@@ -31,7 +31,7 @@ const useFetch = <T,>(url: string, options: any = undefined) => {
           error?.response?.data?.message ||
           error?.message ||
           "An error occurred!";
-        setErr(errorMessage);
+        setError(errorMessage);
         console.warn(errorMessage, error);
       }
     } finally {
@@ -46,7 +46,15 @@ const useFetch = <T,>(url: string, options: any = undefined) => {
     if (options?.now !== false) hitApi();
   }, [options?.now]);
 
-  return { hitApi, data, response, loading, reloading, err, isFinished } as any;
+  return {
+    hitApi,
+    data,
+    response,
+    loading,
+    reloading,
+    error,
+    isFinished,
+  } as any;
 };
 
 export default useFetch;
