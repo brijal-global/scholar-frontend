@@ -6,6 +6,7 @@ import axios, {
   RawAxiosRequestHeaders,
 } from "axios";
 import envConfigs from "@/configs/env.config";
+import { toast } from "react-toastify";
 
 export const axiosInstance = axios.create({
   baseURL: envConfigs.API_URL,
@@ -45,6 +46,8 @@ const fetchApi = async (
     timeout = 30000,
     responseType = "json",
     withCredentials = true,
+    showSuccessToast = false,
+    showErrorToast = true,
   }: {
     method?: Method;
     body?: undefined | null | object;
@@ -53,6 +56,8 @@ const fetchApi = async (
     timeout?: number;
     responseType?: ResponseType;
     withCredentials?: boolean;
+    showSuccessToast?: boolean;
+    showErrorToast?: boolean;
   } = {}
 ): Promise<any> => {
   try {
@@ -67,8 +72,17 @@ const fetchApi = async (
       withCredentials,
       signal,
     })) as any;
+    const successMessage = response?.data?.message || "Action successful.";
+    if (showSuccessToast) {
+      toast.success(successMessage);
+    }
     return response?.data || response;
   } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || "An error occurred. Please try again.";
+    if (showErrorToast) {
+      toast.error(errorMessage);
+    }
     return error?.response?.data || error;
   }
 };

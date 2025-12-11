@@ -8,7 +8,6 @@ const Table = ({
   headers,
   data_keys,
   data,
-  refetch,
   actions = [],
   hasView = false,
 }: any) => {
@@ -49,11 +48,7 @@ const Table = ({
                   ))}
                   {Object.keys(actions).length > 0 && (
                     <td className="border-t border-gray-300 py-5">
-                      <ActionCard
-                        data={item}
-                        refetch={refetch}
-                        actions={actions}
-                      />
+                      <ActionCard item={item} actions={actions} />
                     </td>
                   )}
                 </tr>

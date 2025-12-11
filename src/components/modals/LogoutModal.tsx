@@ -37,7 +37,7 @@ const LogoutModal = ({ isOpen, closeModal, action }: ModuleModalProps) => {
           <PrimaryButton
             title={"Confirm"}
             onClick={action}
-            className="!bg-red-500 hover:!bg-red-600"
+            className="bg-red-500! hover:bg-red-600!"
           />
         </div>
       </div>

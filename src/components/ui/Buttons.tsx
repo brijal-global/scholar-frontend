@@ -29,11 +29,11 @@ const TypeBtn = ({ type, className, title }: ButtonProps) => {
   );
 };
 
-const ClickBtn = ({ onClick, className, title }: ButtonProps) => {
+const ClickBtn = ({ onClick, className, title, disabled }: ButtonProps) => {
   return (
     <>
       {onClick && (
-        <button onClick={onClick} className={className}>
+        <button onClick={disabled ? undefined : onClick} className={className}>
           {title}
         </button>
       )}
@@ -60,7 +60,12 @@ export function PrimaryButton({
       {type && <TypeBtn title={title} className={myclassName} type={type} />}
 
       {onClick && (
-        <ClickBtn title={title} className={myclassName} onClick={onClick} />
+        <ClickBtn
+          title={title}
+          className={myclassName}
+          onClick={onClick}
+          disabled={disabled}
+        />
       )}
     </>
   );
@@ -85,7 +90,12 @@ export function PrimaryOutlineButton({
       {type && <TypeBtn title={title} className={myclassName} type={type} />}
 
       {onClick && (
-        <ClickBtn title={title} className={myclassName} onClick={onClick} />
+        <ClickBtn
+          title={title}
+          className={myclassName}
+          onClick={onClick}
+          disabled={disabled}
+        />
       )}
     </>
   );

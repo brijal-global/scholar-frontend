@@ -1,5 +1,6 @@
 import { Modal } from "antd/lib";
 import { CiTrash } from "react-icons/ci";
+import { PrimaryButton, SecondaryOutlineButton } from "../ui/Buttons";
 
 interface ModuleModalProps {
   isOpen: boolean;
@@ -7,6 +8,7 @@ interface ModuleModalProps {
   action: () => void;
   title: string;
   description: string;
+  loading: boolean;
 }
 
 const DeleteModal = ({
@@ -15,6 +17,7 @@ const DeleteModal = ({
   title,
   description,
   action,
+  loading,
 }: ModuleModalProps) => {
   return (
     <>
@@ -44,19 +47,18 @@ const DeleteModal = ({
           <p className="text-center">{description}</p>
 
           <div className="flex gap-4 items-center text-sm mt-5">
-            <div
+            <SecondaryOutlineButton
+              title={"Cancel"}
               onClick={closeModal}
-              className="py-2.5 px-12 rounded-lg text-red-500 border-2 border-red-500 cursor-pointer hover:bg-red-500 hover:text-white transition font-medium"
-            >
-              Cancel
-            </div>
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-12!"
+            />
 
-            <div
+            <PrimaryButton
+              title={"Delete"}
               onClick={action}
-              className="py-3 px-12 rounded-lg cursor-pointer bg-red-500 text-white transition font-medium hover:bg-red-700"
-            >
-              Delete
-            </div>
+              disabled={loading}
+              className="bg-red-500 text-white hover:bg-red-700 px-12!"
+            />
           </div>
         </div>
       </Modal>

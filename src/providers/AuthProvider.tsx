@@ -45,7 +45,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const {
     data: userData,
-    fetchData: refetch,
+    hitApi: refetch,
     isFinished,
   } = useFetch(authEndpoints.me) as any;
 

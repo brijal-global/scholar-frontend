@@ -16,7 +16,7 @@ export default function Roles() {
   const [searchTerm, setSearchTerm] = useState("") as any;
   const [currentTab, setCurrentTab] = useState("All");
 
-  const { data, loading, fetchData: refetch } = useFetch("/roles") as any;
+  const { data, loading, hitApi: refetch } = useFetch("/roles") as any;
 
   const [filtered, setFiltered] = useState() as any;
 

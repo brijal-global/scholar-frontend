@@ -90,7 +90,7 @@ export default function UploadCVModal({
 
       setLoading(false);
     } catch (error: any) {
-      console.error("error is :  ", error);
+      console.warn("error is :  ", error);
     }
   };
 
@@ -119,7 +119,7 @@ export default function UploadCVModal({
         <div className="w-full rounded-xl flex flex-col gap-6">
           <form
             onSubmit={handleSubmit}
-            className="flex-grow flex flex-col gap-6 text-sm text-[#323232]"
+            className="grow flex flex-col gap-6 text-sm text-[#323232]"
           >
             <span className="font-bold text-xl">Upload CV</span>
 

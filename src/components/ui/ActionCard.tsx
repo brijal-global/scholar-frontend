@@ -1,28 +1,37 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { FiEdit3 } from "react-icons/fi";
 import Link from "next/link";
-import hitApi from "@/lib/axios";
 import DeleteModal from "@/components/modals/DeleteModal";
 import { CiTrash } from "react-icons/ci";
+import useFetch from "@/hooks/useFetch";
 
-const ActionCard = ({ data, refetch, actions }: any) => {
+const ActionCard = ({ item, actions }: any) => {
   const [deleteModalStatus, setDeleteModalStatus] = useState(false);
 
-  const deleteItem = async (id: any) => {
-    await hitApi(actions?.delete?.deleteApiUrl(id), { method: "DELETE" });
+  const { hitApi, loading } = useFetch(
+    actions?.delete?.deleteApiUrl(item?.id),
+    {
+      method: "DELETE",
+      now: false,
+      showSuccessToast: true,
+    }
+  );
 
-    setDeleteModalStatus(false);
+  const deleteItem = async () => {
+    const res = await hitApi();
 
-    actions?.delete?.postDelete();
+    if (res?.success) {
+      actions?.delete?.postDelete?.();
+      setDeleteModalStatus(false);
+    }
   };
 
   return (
     <div className="flex justify-center cursor-pointer text-sm font-semibold">
       <div className="flex items-start gap-6">
         {actions?.edit && (
-          <Link href={actions?.edit?.editLink(data?.id)}>
+          <Link href={actions?.edit?.editLink(item?.id)}>
             <FiEdit3 size={20} color="#0295a9" className="cursor-pointer" />
           </Link>
         )}
@@ -39,18 +48,14 @@ const ActionCard = ({ data, refetch, actions }: any) => {
         )}
       </div>
 
-      {deleteModalStatus && (
-        <DeleteModal
-          isOpen={deleteModalStatus}
-          closeModal={() => setDeleteModalStatus(false)}
-          title={actions?.delete?.label}
-          description={actions?.delete?.description}
-          action={() => {
-            deleteItem(data?.id);
-            setDeleteModalStatus(false);
-          }}
-        />
-      )}
+      <DeleteModal
+        isOpen={deleteModalStatus}
+        closeModal={() => setDeleteModalStatus(false)}
+        title={actions?.delete?.label}
+        description={actions?.delete?.description}
+        action={deleteItem}
+        loading={loading}
+      />
     </div>
   );
 };

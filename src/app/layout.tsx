@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "../styles/globals.css";
 import NextTopLoader from "nextjs-toploader";
 import AntdProvider from "@/providers/AntdProvider";
+import { Bounce, ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "Scholar | Your partner for managing the school | By Fleebug Inc.",
@@ -40,6 +41,19 @@ export default function RootLayout({
             showAtBottom={false}
           />
           {children}
+          <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            hideProgressBar
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="light"
+            transition={Bounce}
+          />
         </AntdProvider>
       </body>
     </html>

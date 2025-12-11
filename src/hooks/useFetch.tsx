@@ -1,60 +1,52 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect, useCallback } from "react";
-import axios, { type Method, type RawAxiosRequestHeaders } from "axios";
+import axios from "axios";
 import fetchApi from "@/lib/axios";
 
-const useFetch = <T,>(
-  url: string,
-  now = true,
-  method: Method = "GET",
-  body: any | null = null,
-  headers: RawAxiosRequestHeaders = {},
-  responseType: any = "json",
-  timeout: number = 10000
-) => {
+const useFetch = <T,>(url: string, options: any = undefined) => {
   const [data, setData] = useState<T | null>(null);
+  const [response, setResponse] = useState<any>(null);
   const [isFinished, setIsFinished] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [reloading, setReloading] = useState<boolean>(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // hitApi function that can be called to fetch or refetch data
-  const fetchData = useCallback(async () => {
+  const hitApi = useCallback(async () => {
     setErr(null);
+    setLoading(true);
     setReloading(true);
     setIsFinished(false);
     try {
-      const response = await fetchApi(url, {
-        method,
-        body,
-        headers,
-        responseType,
-        timeout,
-      });
-      setData(response?.data);
+      const response = await fetchApi(url, options);
+      const responseData = response?.data;
+      setResponse(response);
+      setData(responseData);
+      return response;
     } catch (error: any) {
       if (axios.isCancel(error)) {
         console.warn("Request cancelled 'useFetch'");
       } else {
-        setErr(
+        const errorMessage =
           error?.response?.data?.message ||
-            error?.message ||
-            "An error occurred!"
-        );
-        console.warn(error);
+          error?.message ||
+          "An error occurred!";
+        setErr(errorMessage);
+        console.warn(errorMessage, error);
       }
     } finally {
+      setLoading(false);
       setReloading(false);
       setIsFinished(true);
     }
-  }, [url, method, body, headers, responseType, timeout]);
+  }, [url, options]);
 
   // Use useEffect to fetch data when component mounts
   useEffect(() => {
-    if (now) fetchData();
-  }, []);
+    if (options?.now !== false) hitApi();
+  }, [options?.now]);
 
-  return { fetchData, data, reloading, err, isFinished } as any;
+  return { hitApi, data, response, loading, reloading, err, isFinished } as any;
 };
 
 export default useFetch;

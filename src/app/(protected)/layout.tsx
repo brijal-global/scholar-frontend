@@ -54,14 +54,6 @@ export function ProtectedLayoutWrapper({
     }
   }, [signedInStatus, pathname, userData, router]);
 
-  // console.log(
-  //   !isFinished,
-  //   signedInStatus !== true && signedInStatus !== false,
-  //   "......",
-  //   isFinished,
-  //   signedInStatus
-  // );
-
   if (
     !isFinished ||
     (signedInStatus !== true && signedInStatus !== false) ||
