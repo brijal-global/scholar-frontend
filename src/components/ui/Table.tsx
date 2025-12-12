@@ -2,25 +2,47 @@
 
 import Link from "next/link";
 import ActionCard from "./ActionCard";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Loader from "./Loader";
 import { Switch } from "antd";
 import fetchApi from "@/lib/axios";
 import { RefreshCw } from "lucide-react";
+import useFetch from "@/hooks/useFetch";
+
+import Chip from "@/components/ui/Chip";
+import { SecondaryOutlineButton } from "@/components/ui/Buttons";
 
 const Table = ({
+  dataApiUrl,
   showActiveToggle = true,
-  data_unique_key = "id",
-  loading = true,
-  error,
+  dataUniqueKey = "id",
   headers,
-  data_keys,
-  data,
+  dataKeys,
   viewLink,
   actions = [],
   groups = [],
-  refetch,
 }: any) => {
+  const { data, loading, reloading, refetch, error } = useFetch(
+    dataApiUrl
+  ) as any;
+  const [searchTerm, setSearchTerm] = useState("") as any;
+  const [filteredData, setFilteredData] = useState(data) as any;
+
+  useEffect(() => {
+    if (data) {
+      setTimeout(() => {
+        setFilteredData(
+          data?.filter(
+            (item: any) =>
+              item[dataUniqueKey]
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) || []
+          )
+        );
+      }, 0);
+    }
+  }, [data, searchTerm, dataUniqueKey]);
+
   const hasGroups = groups.length > 0;
 
   const groupedData = useMemo(() => {
@@ -37,7 +59,7 @@ const Table = ({
     // For each item, add it to all groups where it matches the group's criteria
     return data.reduce((acc: any, item: any) => {
       groups.forEach((group: any) => {
-        if (group.values.includes(item[group.data_key])) {
+        if (group.values.includes(item[group.dataKey])) {
           acc[group.label] = [...(acc[group.label] || []), item];
         }
       });
@@ -47,10 +69,18 @@ const Table = ({
 
   const tabs = groupedData ? Object.keys(groupedData) : [];
   const [selectedTab, setSelectedTab] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use selected tab if valid, otherwise default to first tab
   const currentTab = tabs.includes(selectedTab) ? selectedTab : tabs[0] || "";
+
+  if (loading) return <Loader />;
+
+  if (error) return <div className="text-red-500 text-center">{error}</div>;
+
+  // Determine the data to display
+  const displayData =
+    hasGroups && groupedData ? groupedData[currentTab] : filteredData;
+  const showTabs = hasGroups && groupedData && tabs.length > 0;
 
   const toggleActive = async (identifier: string, active: boolean) => {
     const res = await fetchApi(`/roles/${identifier}`, {
@@ -60,26 +90,41 @@ const Table = ({
       },
     });
 
-    if (!res?.success) {
+    if (res?.success) {
+      await refetch();
+    } else {
       // revert the status in ui
       displayData?.forEach((item: any) => {
-        if (item[data_unique_key] === identifier) {
+        if (item[dataUniqueKey] === identifier) {
           item["isActive"] = !active;
         }
       });
     }
   };
 
-  if (loading) return <Loader />;
-
-  if (error) return <div className="text-red-500 text-center">{error}</div>;
-
-  // Determine the data to display
-  const displayData = hasGroups && groupedData ? groupedData[currentTab] : data;
-  const showTabs = hasGroups && groupedData && tabs.length > 0;
-
   return (
-    <div className="flex flex-col justify-center items-center gap-6 rounded-lg w-full">
+    <div className="flex flex-col justify-center items-center gap-4 rounded-lg w-full">
+      <div className="w-full flex flex-col md:flex-row md:items-center text-sm gap-2">
+        <div className="md:mr-8 flex items-center gap-3">
+          <span className="text-primary-dark text-lg font-semibold ">
+            Roles
+          </span>
+
+          {data?.length > 0 && <Chip text={`${data?.length} roles found`} />}
+        </div>
+        <input
+          type="text"
+          placeholder="Search"
+          className="px-5 border grow rounded-md outline-gray-400 py-2.5"
+          value={searchTerm}
+          onChange={(e: any) => setSearchTerm(e.target.value)}
+        />
+        <SecondaryOutlineButton
+          title="Create New Role"
+          link="/scholar/roles/new"
+        />
+      </div>
+
       {showTabs && (
         <div className="w-full flex items-center gap-2 justify-between">
           <div className="grow flex items-center gap-6">
@@ -99,19 +144,14 @@ const Table = ({
             ))}
           </div>
           <button
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 cursor-pointer"
             onClick={async () => {
-              setIsRefreshing(true);
               await refetch();
-              setIsRefreshing(false);
             }}
-            disabled={isRefreshing}
+            disabled={reloading}
           >
-            <RefreshCw
-              size={16}
-              className={isRefreshing ? "animate-spin" : ""}
-            />
-            {isRefreshing ? "Refreshing..." : "Refresh"}
+            <RefreshCw size={14} className={reloading ? "animate-spin" : ""} />
+            {reloading ? "Refresh" : "Refresh"}
           </button>
         </div>
       )}
@@ -138,7 +178,7 @@ const Table = ({
             <tbody>
               {displayData?.map((item: any, index: number) => (
                 <tr key={index} className="hover:bg-gray-50 transition">
-                  {data_keys?.map((key: string, index: number) => (
+                  {dataKeys?.map((key: string, index: number) => (
                     <td
                       key={index}
                       className="border-t border-gray-300 px-2 py-5 text-left text-sm text-gray-500"
@@ -159,7 +199,7 @@ const Table = ({
                         defaultChecked={item["isActive"]}
                         classNames={{}}
                         onChange={(checked) => {
-                          toggleActive(item[data_unique_key], checked);
+                          toggleActive(item[dataUniqueKey], checked);
                         }}
                       />
                     </td>

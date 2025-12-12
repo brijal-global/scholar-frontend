@@ -1,10 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import fetchApi from "@/lib/axios";
 
-const useFetch = <T,>(url: string, options: any = undefined) => {
+interface UseFetchOptions {
+  now?: boolean;
+  [key: string]: any;
+}
+
+interface UseFetchReturn<T> {
+  hitApi: () => Promise<void>;
+  refetch: () => Promise<void>;
+  data: T | null;
+  response: any;
+  loading: boolean;
+  reloading: boolean;
+  error: string | null;
+  isFinished: boolean;
+}
+
+const useFetch = <T,>(
+  url: string,
+  options: UseFetchOptions = {}
+): UseFetchReturn<T> => {
   const [data, setData] = useState<T | null>(null);
   const [response, setResponse] = useState<any>(null);
   const [isFinished, setIsFinished] = useState<boolean>(false);
@@ -12,13 +31,25 @@ const useFetch = <T,>(url: string, options: any = undefined) => {
   const [reloading, setReloading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const hitApi = useCallback(async () => {
+  // Use ref to store options to avoid recreating callbacks on options change
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  const fetchData = useCallback(async () => {
     setError(null);
-    setLoading(true);
-    setReloading(true);
-    setIsFinished(false);
+
     try {
-      const response = await fetchApi(url, options);
+      const response = await fetchApi(url, optionsRef.current as any);
+
+      // Check if response indicates an error
+      if (response?.error || response?.status === "error") {
+        const errorMessage = response?.message || "An error occurred!";
+        setError(errorMessage);
+        setData(null);
+        setResponse(null);
+        return null;
+      }
+
       const responseData = response?.data;
       setResponse(response);
       setData(responseData);
@@ -32,29 +63,48 @@ const useFetch = <T,>(url: string, options: any = undefined) => {
           error?.message ||
           "An error occurred!";
         setError(errorMessage);
+        setData(null);
+        setResponse(null);
         console.warn(errorMessage, error);
       }
+      return null;
     } finally {
-      setLoading(false);
-      setReloading(false);
       setIsFinished(true);
     }
-  }, [url, options]);
+  }, [url]); // Only depend on url
+
+  const hitApi = useCallback(async () => {
+    setLoading(true);
+    setReloading(true);
+    setIsFinished(false);
+    await fetchData();
+    setLoading(false);
+    setReloading(false);
+  }, [fetchData]);
+
+  const refetch = useCallback(async () => {
+    setReloading(true);
+    await fetchData();
+    setReloading(false);
+  }, [fetchData]);
 
   // Use useEffect to fetch data when component mounts
   useEffect(() => {
-    if (options?.now !== false) hitApi();
-  }, [options?.now]);
+    if (options?.now !== false) {
+      hitApi();
+    }
+  }, [hitApi, options?.now]); // Added hitApi dependency
 
   return {
     hitApi,
+    refetch,
     data,
     response,
     loading,
     reloading,
     error,
     isFinished,
-  } as any;
+  };
 };
 
 export default useFetch;
