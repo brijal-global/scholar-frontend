@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import "../styles/globals.css";
 import NextTopLoader from "nextjs-toploader";
 import AntdProvider from "@/providers/AntdProvider";
 import { Bounce, ToastContainer } from "react-toastify";
+import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Scholar | Your partner for managing the school | By Fleebug Inc.",

@@ -40,12 +40,11 @@ const MobileSidebar = ({ pathname }: { pathname: string }) => {
         open={open}
         onClose={onClose}
         placement="left"
-        width={280}
+        size={280}
         getContainer={false}
         classNames={{
           header: "",
           body: "flex flex-col gap-8",
-          content: "",
         }}
       >
         <div className="overflow-y-auto flex-grow scrollbar space-y-2">

@@ -102,17 +102,7 @@ export default function UploadCVModal({
       closeIcon={null}
       centered
       width={800}
-      styles={{
-        content: {
-          backgroundColor: "white",
-          borderRadius: "30px",
-          padding: "0",
-          marginTop: "70px",
-          marginBottom: "70px",
-          marginLeft: "10px",
-          marginRight: "10px",
-        },
-      }}
+      styles={{}}
       className={`p-0 m-0 font-primary ${poppins.className}`}
     >
       <div className="w-full flex flex-col gap-12 px-4 md:px-12 component-py items-center">

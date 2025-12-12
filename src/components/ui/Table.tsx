@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import Loader from "./Loader";
 import { Switch } from "antd";
 import fetchApi from "@/lib/axios";
-import { PrimaryButton } from "./Buttons";
+import { RefreshCw } from "lucide-react";
 
 const Table = ({
   showActiveToggle = true,
@@ -47,6 +47,7 @@ const Table = ({
 
   const tabs = groupedData ? Object.keys(groupedData) : [];
   const [selectedTab, setSelectedTab] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use selected tab if valid, otherwise default to first tab
   const currentTab = tabs.includes(selectedTab) ? selectedTab : tabs[0] || "";
@@ -85,27 +86,33 @@ const Table = ({
             {tabs.map((tab: string) => (
               <button
                 key={tab}
-                className={
-                  "cursor-pointer text-sm font-medium p-1 transition-all duration-300 " +
-                  (currentTab === tab
-                    ? "text-primary border-primary border-b-2"
-                    : "border-transparent border-b-2")
-                }
+                className={`cursor-pointer text-sm font-medium px-3 py-1.5 rounded-md transition-all duration-200 text-gray-700 ${
+                  currentTab === tab ? "bg-gray-100" : ""
+                }`}
                 onClick={() => setSelectedTab(tab)}
               >
                 {tab}
-                <span className="text-xs text-gray-500 ml-1">
+                <span className="text-xs ml-1">
                   ({groupedData[tab]?.length || 0})
                 </span>
               </button>
             ))}
           </div>
-          <PrimaryButton
-            title="Refresh"
-            onClick={() => {
-              refetch();
+          <button
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={async () => {
+              setIsRefreshing(true);
+              await refetch();
+              setIsRefreshing(false);
             }}
-          />
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              size={16}
+              className={isRefreshing ? "animate-spin" : ""}
+            />
+            {isRefreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
       )}
       <div className="w-full overflow-x-auto scrollbar pb-3">
@@ -150,6 +157,7 @@ const Table = ({
                     <td className="border-t border-gray-300 py-5 text-center">
                       <Switch
                         defaultChecked={item["isActive"]}
+                        classNames={{}}
                         onChange={(checked) => {
                           toggleActive(item[data_unique_key], checked);
                         }}

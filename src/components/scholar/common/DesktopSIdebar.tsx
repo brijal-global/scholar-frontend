@@ -10,8 +10,8 @@ export default function DesktopSidebar({ pathname }: { pathname: string }) {
     <nav className="hidden lg:flex w-full h-full overflow-y-auto bg-[#fdfdfd] py-2 lg:py-4 px-2 lg:px-4 flex-col border-r border-[#E5E9EB]">
       {/* Logo Section */}
       <div className="flex items-center mb-8 gap-3">
-        <Image src="/logo.png" alt="logo" width={32} height={32} />
-        <p className=" text-lg font-medium text-gray-900">Scholar</p>
+        <Image src="/logo.png" alt="logo" width={30} height={30} />
+        <p className="text-lg font-medium text-gray-900">Scholar</p>
       </div>
 
       {/* Main Items */}
@@ -20,10 +20,10 @@ export default function DesktopSidebar({ pathname }: { pathname: string }) {
           <Link
             key={item.id}
             href={item.href}
-            className={`flex items-center gap-2 py-3 px-4 rounded-lg duration-200 transition text-sm ${
+            className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition text-sm ${
               pathname.startsWith(item.href)
                 ? "bg-primary-light text-primary font-medium"
-                : "text-[#838383] hover:bg-white hover:text-primary"
+                : "text-[#838383] hover:bg-primary-light hover:text-primary"
             }`}
           >
             {item.icon && <item.icon className="w-5 h-5" />}

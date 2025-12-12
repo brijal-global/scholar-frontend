@@ -11,6 +11,7 @@ import useFetch from "@/hooks/useFetch";
 import Chip from "@/components/ui/Chip";
 import { PencilIcon } from "@hugeicons/core-free-icons";
 import { TrashIcon } from "lucide-react";
+import { SecondaryOutlineButton } from "@/components/ui/Buttons";
 
 export default function Roles() {
   const [searchTerm, setSearchTerm] = useState("") as any;
@@ -105,12 +106,10 @@ export default function Roles() {
           value={searchTerm}
           onChange={(e: any) => setSearchTerm(e.target.value)}
         />
-        <Link
-          href={"/scholar/roles/new"}
-          className="py-2.5 px-8 rounded-md font-medium bg-secondary flex items-center justify-center text-white hover:bg-secondary-dark transition text-center text-nowrap"
-        >
-          Create New Role
-        </Link>
+        <SecondaryOutlineButton
+          title="Create New Role"
+          link="/scholar/roles/new"
+        />
       </div>
       {Object.keys(tabs).length > 1 && (
         <div className="flex items-center gap-6">
