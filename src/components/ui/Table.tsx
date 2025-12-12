@@ -191,10 +191,10 @@ const Table = ({
                     >
                       {keyIndex === 0 && viewLink ? (
                         <Link href={viewLink(item?.id)}>
-                          {item[key] || "N/A"}
+                          {item?.[key] || "N/A"}
                         </Link>
                       ) : (
-                        item[key] || "N/A"
+                      item?.[key] ? String(item?.[key]) : "N/A"
                       )}
                     </td>
                   ))}
