@@ -13,12 +13,14 @@ import Chip from "@/components/ui/Chip";
 import { SecondaryOutlineButton } from "@/components/ui/Buttons";
 
 const Table = ({
+  title,
   dataApiUrl,
   showActiveToggle = true,
   dataUniqueKey = "id",
   headers,
   dataKeys,
   viewLink,
+  createLink,
   actions = [],
   groups = [],
 }: any) => {
@@ -83,7 +85,7 @@ const Table = ({
   const showTabs = hasGroups && groupedData && tabs.length > 0;
 
   const toggleActive = async (identifier: string, active: boolean) => {
-    const res = await fetchApi(`/roles/${identifier}`, {
+    const res = await fetchApi(`${dataApiUrl}/${identifier}`, {
       method: "PUT",
       body: {
         isActive: active,
@@ -107,10 +109,12 @@ const Table = ({
       <div className="w-full flex flex-col md:flex-row md:items-center text-sm gap-2">
         <div className="md:mr-8 flex items-center gap-3">
           <span className="text-primary-dark text-lg font-semibold ">
-            Roles
+            {title}
           </span>
 
-          {data?.length > 0 && <Chip text={`${data?.length} roles found`} />}
+          {data?.length > 0 && (
+            <Chip text={`${data?.length} ${title?.toLowerCase()} found`} />
+          )}
         </div>
         <input
           type="text"
@@ -119,10 +123,9 @@ const Table = ({
           value={searchTerm}
           onChange={(e: any) => setSearchTerm(e.target.value)}
         />
-        <SecondaryOutlineButton
-          title="Create New Role"
-          link="/scholar/roles/new"
-        />
+        {createLink && (
+          <SecondaryOutlineButton title="Create New" link={createLink} />
+        )}
       </div>
 
       {showTabs && (

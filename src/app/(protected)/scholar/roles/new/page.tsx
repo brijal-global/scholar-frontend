@@ -3,9 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import hitApi from "@/lib/axios";
-import Gamification from "@/components/modals/Gamification";
-import { toast } from "react-toastify";
+import fetchApi from "@/lib/axios";
 
 const NewRoles = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +12,6 @@ const NewRoles = () => {
   }) as any;
 
   const [loading, setLoading] = useState(false);
-  const [successModalStatus, setSuccessModalStatus] = useState(false);
 
   const handleChange = (e: any) => {
     setFormData({
@@ -28,13 +25,13 @@ const NewRoles = () => {
 
     setLoading(true);
 
-    const res = await hitApi("/roles", { method: "POST", body: formData });
-
-    if (res?.success) {
-      setSuccessModalStatus(true);
-    } else {
-      toast.error(res?.message || "An error occurred. Please try again.");
-    }
+    await fetchApi("/roles", {
+      method: "POST",
+      body: formData,
+      showSuccessToast: true,
+      successRoute: "/scholar/roles",
+      errorRoute: "/scholar/roles/new",
+    });
 
     setLoading(false);
   };
@@ -90,16 +87,6 @@ const NewRoles = () => {
           {loading ? "Saving..." : "Save"}
         </button>
       </div>
-
-      {successModalStatus && (
-        <Gamification
-          isOpen={successModalStatus}
-          closeModal={() => setSuccessModalStatus(false)}
-          title="Success"
-          text="Role added successfully"
-          link={"/scholar/roles"}
-        />
-      )}
     </form>
   );
 };

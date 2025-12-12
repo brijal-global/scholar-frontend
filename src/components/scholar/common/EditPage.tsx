@@ -1,19 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import useFetch from "@/hooks/useFetch";
-import hitApi from "@/lib/axios";
-
-import Gamification from "@/components/modals/Gamification";
-import FailedModal from "@/components/modals/FailedModal";
+import fetchApi from "@/lib/axios";
 import Loader from "@/components/ui/Loader";
+import { toast } from "react-toastify";
 
 const EditPage = ({ id }: { id: string }) => {
-  const [failedText, setFailedText] = useState("");
-  const [successModalStatus, setSuccessModalStatus] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { data } = useFetch(`/roles/${id}`) as any;
@@ -30,7 +26,7 @@ const EditPage = ({ id }: { id: string }) => {
 
       if (file) {
         if (file.size > maxSize) {
-          setFailedText(
+          toast.error(
             `The selected file is too large. Please select a file smaller than ${
               maxSize / 1024 / 1024
             } MB.`
@@ -58,16 +54,14 @@ const EditPage = ({ id }: { id: string }) => {
     e.preventDefault();
 
     setLoading(true);
-    setFailedText("");
 
     // Send the form data to the server
-    const res = await hitApi(`/roles/${id}`, { method: "PUT", body: formData });
-
-    if (res?.success) {
-      setSuccessModalStatus(true);
-    } else {
-      setFailedText(res?.message || "An error occurred. Please try again.");
-    }
+    await fetchApi(`/roles/${id}`, {
+      method: "PUT",
+      body: formData,
+      showSuccessToast: true,
+      successRoute: "/scholar/roles",
+    });
 
     setLoading(false);
   };
@@ -137,31 +131,6 @@ const EditPage = ({ id }: { id: string }) => {
           {loading ? "Saving..." : "Save"}
         </button>
       </div>
-
-      {failedText && (
-        <div className="w-full bg-red-100 rounded-lg p-3 mb-3 text-red-500 font-medium text-center">
-          {failedText}
-        </div>
-      )}
-
-      {successModalStatus && (
-        <Gamification
-          isOpen={successModalStatus}
-          closeModal={() => setSuccessModalStatus(false)}
-          title="Success"
-          text="Role saved successfully"
-          link={"/scholar/roles"}
-        />
-      )}
-
-      {failedText && (
-        <FailedModal
-          isOpen={!!failedText}
-          closeModal={() => setFailedText("")}
-          title="Failed"
-          text={failedText}
-        />
-      )}
     </form>
   );
 };

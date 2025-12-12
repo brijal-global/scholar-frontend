@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect } from "react";
@@ -7,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import Loader from "@/components/ui/Loader";
 import { ToastContainer } from "react-toastify";
 import { Bounce } from "react-toastify";
+
+export let routerInstance = undefined as any;
 
 export default function ProtectedLayout({
   children,
@@ -28,6 +31,12 @@ export function ProtectedLayoutWrapper({
   const { isFinished, signedInStatus, userData } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    if (router) {
+      routerInstance = router;
+    }
+  }, [router]);
 
   useEffect(() => {
     if (!pathname || !router) return;

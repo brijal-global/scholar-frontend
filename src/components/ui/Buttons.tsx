@@ -11,7 +11,7 @@ interface ButtonProps {
 }
 
 const commonclassName =
-  "text-center text-sm py-3 px-5 sm:px-8 text-nowrap font-medium rounded-lg flex justify-center items-center rounded-md transition cursor-pointer";
+  "text-center text-sm py-3 px-5 sm:px-8 text-nowrap rounded-lg flex justify-center items-center rounded-md transition cursor-pointer";
 
 const LinkBtn = ({ title, link, className }: ButtonProps) => {
   return (
@@ -79,7 +79,7 @@ export function PrimaryOutlineButton({
   onClick,
   disabled,
 }: ButtonProps) {
-  const myclassName = `${commonclassName} border-2 border-primary text-primary hover:bg-primary hover:text-white ${className} !py-2.5 ${
+  const myclassName = `${commonclassName} border border-primary text-primary hover:bg-primary hover:text-white ${className} !py-2.5 ${
     disabled ? "opacity-50 cursor-not-allowed" : ""
   }`;
 
@@ -109,7 +109,7 @@ export function SecondaryOutlineButton({
   onClick,
   disabled,
 }: ButtonProps) {
-  const myclassName = `${commonclassName} border-2 border-secondary text-secondary hover:bg-secondary hover:text-white ${className} !py-2.5 ${
+  const myclassName = `${commonclassName} border border-secondary text-secondary hover:bg-secondary hover:text-white ${className} !py-2.5 ${
     disabled ? "opacity-50 cursor-not-allowed" : ""
   }`;
 

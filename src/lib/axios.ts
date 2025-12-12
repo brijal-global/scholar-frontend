@@ -7,6 +7,7 @@ import axios, {
 } from "axios";
 import envConfigs from "@/configs/env.config";
 import { toast } from "react-toastify";
+import { routerInstance } from "@/app/(protected)/layout";
 
 export const axiosInstance = axios.create({
   baseURL: envConfigs.API_URL,
@@ -48,6 +49,8 @@ const fetchApi = async (
     withCredentials = true,
     showSuccessToast = false,
     showErrorToast = true,
+    successRoute = undefined,
+    errorRoute = undefined,
   }: {
     method?: Method;
     body?: undefined | null | object;
@@ -58,6 +61,8 @@ const fetchApi = async (
     withCredentials?: boolean;
     showSuccessToast?: boolean;
     showErrorToast?: boolean;
+    successRoute?: string;
+    errorRoute?: string;
   } = {}
 ): Promise<any> => {
   try {
@@ -76,12 +81,18 @@ const fetchApi = async (
     if (showSuccessToast) {
       toast.success(successMessage);
     }
+    if (successRoute) {
+      routerInstance.push(successRoute);
+    }
     return response?.data || response;
   } catch (error: any) {
     const errorMessage =
       error?.response?.data?.message || "An error occurred. Please try again.";
     if (showErrorToast) {
       toast.error(errorMessage);
+    }
+    if (errorRoute) {
+      routerInstance.push(errorRoute);
     }
     return error?.response?.data || error;
   }

@@ -10,7 +10,9 @@ export default function Roles() {
   const tabs = {
     All: (
       <Table
+        title="Roles"
         dataApiUrl="/roles"
+        createLink="/scholar/roles/new"
         headers={["Name", "Description", "Created"]}
         dataKeys={["name", "description", "createdAt"]}
         dataUniqueKey="id"
