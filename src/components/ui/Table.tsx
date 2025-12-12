@@ -75,8 +75,6 @@ const Table = ({
   // Use selected tab if valid, otherwise default to first tab
   const currentTab = tabs.includes(selectedTab) ? selectedTab : tabs[0] || "";
 
-  if (loading) return <Loader />;
-
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
   // Determine the data to display
@@ -159,7 +157,9 @@ const Table = ({
         </div>
       )}
       <div className="w-full overflow-x-auto scrollbar pb-3">
-        {displayData?.length > 0 ? (
+        {loading ? (
+          <Loader />
+        ) : displayData?.length > 0 ? (
           <table className="rounded-lg w-full ">
             <thead>
               <tr className="bg-[#f9fafb] rounded-xl text-sm text-nowrap">

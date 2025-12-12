@@ -40,8 +40,8 @@ export default function DesktopSidebar({ pathname }: { pathname: string }) {
             href={item.href}
             className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm ${
               pathname.startsWith(item.href)
-                ? "bg-white text-primary font-semibold"
-                : "text-[#838383] hover:bg-white hover:text-primary"
+                ? "bg-primary-light text-primary font-medium"
+                : "text-[#838383] hover:bg-primary-light hover:text-primary"
             }`}
           >
             {item.icon && <item.icon className="w-5 h-5" />}
