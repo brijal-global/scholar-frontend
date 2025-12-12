@@ -6,7 +6,7 @@ import DeleteModal from "@/components/modals/DeleteModal";
 import { CiTrash } from "react-icons/ci";
 import useFetch from "@/hooks/useFetch";
 
-const ActionCard = ({ item, actions }: any) => {
+const ActionCard = ({ item, actions, refetch }: any) => {
   const [deleteModalStatus, setDeleteModalStatus] = useState(false);
 
   const { hitApi, loading } = useFetch(
@@ -19,10 +19,10 @@ const ActionCard = ({ item, actions }: any) => {
   );
 
   const deleteItem = async () => {
-    const res = await hitApi();
+    const res = (await hitApi()) as any;
 
-    if (res?.success) {
-      actions?.delete?.postDelete?.();
+    if (res?.success && actions?.delete?.reloadAfterDelete) {
+      refetch();
       setDeleteModalStatus(false);
     }
   };

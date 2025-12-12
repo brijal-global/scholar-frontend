@@ -212,7 +212,11 @@ const Table = ({
 
                   {Object.keys(actions).length > 0 && (
                     <td className="border-t border-gray-300 py-5">
-                      <ActionCard item={item} actions={actions} />
+                      <ActionCard
+                        item={item}
+                        actions={actions}
+                        refetch={refetch}
+                      />
                     </td>
                   )}
                 </tr>

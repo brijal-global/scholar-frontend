@@ -75,17 +75,17 @@ const useFetch = <T,>(
 
   const hitApi = useCallback(async () => {
     setLoading(true);
-    setReloading(true);
     setIsFinished(false);
-    await fetchData();
+    const res = await fetchData();
     setLoading(false);
-    setReloading(false);
+    return res;
   }, [fetchData]);
 
   const refetch = useCallback(async () => {
     setReloading(true);
-    await fetchData();
+    const res = await fetchData();
     setReloading(false);
+    return res;
   }, [fetchData]);
 
   // Use useEffect to fetch data when component mounts
