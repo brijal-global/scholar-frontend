@@ -19,6 +19,7 @@ const Table = ({
   dataUniqueKey = "id",
   headers,
   dataKeys,
+  searchKeys,
   viewLink,
   createLink,
   actions = [],
@@ -34,16 +35,15 @@ const Table = ({
     if (data) {
       setTimeout(() => {
         setFilteredData(
-          data?.filter(
-            (item: any) =>
-              item[dataUniqueKey]
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) || []
-          )
+          data?.filter((item: any) =>
+            searchKeys?.some((key: string) =>
+              item[key]?.toLowerCase().includes(searchTerm.toLowerCase())
+            )
+          ) || []
         );
       }, 0);
     }
-  }, [data, searchTerm, dataUniqueKey]);
+  }, [data, searchTerm, dataUniqueKey, searchKeys]);
 
   const hasGroups = groups.length > 0;
 
@@ -56,10 +56,10 @@ const Table = ({
       return acc;
     }, {});
 
-    if (!data) return initial;
+    if (!filteredData) return initial;
 
     // For each item, add it to all groups where it matches the group's criteria
-    return data.reduce((acc: any, item: any) => {
+    return filteredData.reduce((acc: any, item: any) => {
       groups.forEach((group: any) => {
         if (group.values.includes(item[group.dataKey])) {
           acc[group.label] = [...(acc[group.label] || []), item];
@@ -67,7 +67,7 @@ const Table = ({
       });
       return acc;
     }, initial);
-  }, [data, groups, hasGroups]);
+  }, [filteredData, groups, hasGroups]);
 
   const tabs = groupedData ? Object.keys(groupedData) : [];
   const [selectedTab, setSelectedTab] = useState("");
@@ -179,14 +179,17 @@ const Table = ({
               </tr>
             </thead>
             <tbody>
-              {displayData?.map((item: any, index: number) => (
-                <tr key={index} className="hover:bg-gray-50 transition">
-                  {dataKeys?.map((key: string, index: number) => (
+              {displayData?.map((item: any) => (
+                <tr
+                  key={item[dataUniqueKey]}
+                  className="hover:bg-gray-50 transition"
+                >
+                  {dataKeys?.map((key: string, keyIndex: number) => (
                     <td
-                      key={index}
+                      key={key}
                       className="border-t border-gray-300 px-2 py-5 text-left text-sm text-gray-500"
                     >
-                      {index === 0 && viewLink ? (
+                      {keyIndex === 0 && viewLink ? (
                         <Link href={viewLink(item?.id)}>
                           {item[key] || "N/A"}
                         </Link>
@@ -200,7 +203,6 @@ const Table = ({
                     <td className="border-t border-gray-300 py-5 text-center">
                       <Switch
                         defaultChecked={item["isActive"]}
-                        classNames={{}}
                         onChange={(checked) => {
                           toggleActive(item[dataUniqueKey], checked);
                         }}

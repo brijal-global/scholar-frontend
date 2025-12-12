@@ -15,6 +15,7 @@ export default function Roles() {
         createLink="/scholar/roles/new"
         headers={["Name", "Description", "Created"]}
         dataKeys={["name", "description", "createdAt"]}
+        searchKeys={["name", "description"]}
         dataUniqueKey="id"
         groups={[
           {
