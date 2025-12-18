@@ -14,10 +14,11 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     try {
-      const res = await fetchApi(authEndpoints.signOut);
+      const res = await fetchApi(authEndpoints.signOut, {
+        showSuccessToast: true,
+      });
       if (res?.success) {
         setSignedInStatus(false);
-        refetch();
         router.push("/auth/sign-in");
       }
 

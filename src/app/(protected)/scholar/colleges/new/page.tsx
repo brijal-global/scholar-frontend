@@ -6,12 +6,13 @@ import fetchApi from "@/lib/axios";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import { collegeTypes } from "@/data/enums";
 
 const NewCollege = () => {
   const router = useRouter();
   const [formData, setFormData] = useState<any>({
     name: "",
-    collegeType: "",
+    collegeType: Object.values(collegeTypes)[0] as string,
     country: "",
     city: "",
     streetAddress: "",
@@ -98,9 +99,11 @@ const NewCollege = () => {
             onChange={handleChange}
             required
           >
-            <option value="private">Private</option>
-            <option value="public">Public</option>
-            <option value="community">Community</option>
+            {Object.entries(collegeTypes).map(([key, value]) => (
+              <option key={key} value={value}>
+                {key}
+              </option>
+            ))}
           </select>
         </div>
 

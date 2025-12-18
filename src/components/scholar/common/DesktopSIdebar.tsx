@@ -4,8 +4,11 @@ import { LogOut } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { primarySidebarItems, secondarySidebarItems } from "./items";
+import LogoutModal from "@/components/modals/LogoutModal";
+import { useState } from "react";
 
 export default function DesktopSidebar({ pathname }: { pathname: string }) {
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   return (
     <nav className="hidden lg:flex w-full h-full overflow-y-auto bg-[#fdfdfd] py-2 lg:py-4 px-2 lg:px-4 flex-col border-r border-[#E5E9EB]">
       {/* Logo Section */}
@@ -50,13 +53,19 @@ export default function DesktopSidebar({ pathname }: { pathname: string }) {
         ))}
 
         <Link
-          href={"/auth"}
-          className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm text-[#838383] hover:bg-red-100 hover:text-red-500`}
+          href={"#"}
+          onClick={() => setIsLogoutModalOpen(true)}
+          className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm text-[#838383] hover:bg-red-100 hover:text-red-500 cursor-pointer`}
         >
           <LogOut className="w-5 h-5" />
           Logout
         </Link>
       </div>
+
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        closeModal={() => setIsLogoutModalOpen(false)}
+      />
     </nav>
   );
 }

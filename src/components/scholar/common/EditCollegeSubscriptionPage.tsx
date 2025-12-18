@@ -1,14 +1,28 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import fetchApi from "@/lib/axios";
-import useFetch from "@/hooks/useFetch";
 
-const NewSubscription = () => {
+import useFetch from "@/hooks/useFetch";
+import fetchApi from "@/lib/axios";
+import Loader from "@/components/ui/Loader";
+
+const EditCollegeSubscriptionPage = ({
+  collegeId,
+  subscriptionId,
+}: {
+  collegeId: string;
+  subscriptionId: string;
+}) => {
+  const [loading, setLoading] = useState(false);
+
+  const { data } = useFetch(`/subscriptions/${subscriptionId}`) as any;
+  const { data: collegeData } = useFetch(`/colleges/${collegeId}`) as any;
+
   const [formData, setFormData] = useState({
-    collegeId: "",
+    collegeId: collegeId,
+    name: "",
     maxAllowedStudents: "",
     startDate: "",
     expiryDate: "",
@@ -17,14 +31,9 @@ const NewSubscription = () => {
     isActive: true,
   }) as any;
 
-  const [loading, setLoading] = useState(false);
-
-  // Fetch colleges for the dropdown
-  const { data: colleges } = useFetch("/colleges") as any;
-
   const handleChange = (e: any) => {
     const { name, value, type, checked, files } = e.target;
-    
+
     if (type === "file") {
       setFormData({
         ...formData,
@@ -54,38 +63,67 @@ const NewSubscription = () => {
       totalAmount: parseFloat(formData.totalAmount),
     };
 
-    await fetchApi("/subscriptions", {
-      method: "POST",
+    await fetchApi(`/subscriptions/${subscriptionId}`, {
+      method: "PUT",
       body: payload,
       showSuccessToast: true,
-      successRoute: "/scholar/subscriptions",
-      errorRoute: "/scholar/subscriptions/new",
+      successRoute: `/scholar/colleges/${collegeId}/subscriptions`,
     });
 
     setLoading(false);
   };
 
+  useEffect(() => {
+    if (data) {
+      setTimeout(() => {
+        setFormData({
+          collegeId: data.collegeId || collegeId,
+          name: data.name || "",
+          maxAllowedStudents: data.maxAllowedStudents?.toString() || "",
+          startDate: data.startDate?.split("T")[0] || "",
+          expiryDate: data.expiryDate?.split("T")[0] || "",
+          totalAmount: data.totalAmount?.toString() || "",
+          attachment: null,
+          isActive: data.isActive ?? true,
+        });
+      }, 0);
+    }
+  }, [data, collegeId]);
+
+  if (!data) {
+    return <Loader />;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col gap-6 my-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-left">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-left">
         <div className="flex flex-col gap-2">
           <label htmlFor="collegeId" className="text-base">
             College <span className="text-red-500 text-sm">*</span>
           </label>
-          <select
+          <input
+            type="text"
             name="collegeId"
-            value={formData.collegeId}
+            value={collegeData?.name || ""}
+            required
+            disabled
+            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 bg-gray-100"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="name" className="text-base">
+            Subscription name <span className="text-red-500 text-sm">*</span>
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData?.name || ""}
             required
             onChange={handleChange}
-            className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm bg-white border border-gray-300"
-          >
-            <option value="">Select a college</option>
-            {colleges?.map((college: any) => (
-              <option key={college.id} value={college.id}>
-                {college.name}
-              </option>
-            ))}
-          </select>
+            placeholder="Subscription name"
+            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400"
+          />
         </div>
 
         <div className="flex flex-col gap-2">
@@ -95,40 +133,12 @@ const NewSubscription = () => {
           <input
             type="number"
             name="maxAllowedStudents"
-            value={formData.maxAllowedStudents}
+            value={formData?.maxAllowedStudents || ""}
             required
             onChange={handleChange}
             placeholder="Maximum number of students"
             min="1"
-            className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="startDate" className="text-base">
-            Start Date <span className="text-red-500 text-sm">*</span>
-          </label>
-          <input
-            type="date"
-            name="startDate"
-            value={formData.startDate}
-            required
-            onChange={handleChange}
-            className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm"
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="expiryDate" className="text-base">
-            Expiry Date <span className="text-red-500 text-sm">*</span>
-          </label>
-          <input
-            type="date"
-            name="expiryDate"
-            value={formData.expiryDate}
-            required
-            onChange={handleChange}
-            className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm"
+            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400"
           />
         </div>
 
@@ -139,13 +149,41 @@ const NewSubscription = () => {
           <input
             type="number"
             name="totalAmount"
-            value={formData.totalAmount}
+            value={formData?.totalAmount || ""}
             required
             onChange={handleChange}
             placeholder="0.00"
             step="0.01"
             min="0"
-            className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm"
+            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="startDate" className="text-base">
+            Start Date <span className="text-red-500 text-sm">*</span>
+          </label>
+          <input
+            type="date"
+            name="startDate"
+            value={formData?.startDate || ""}
+            required
+            onChange={handleChange}
+            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="expiryDate" className="text-base">
+            Expiry Date <span className="text-red-500 text-sm">*</span>
+          </label>
+          <input
+            type="date"
+            name="expiryDate"
+            value={formData?.expiryDate || ""}
+            required
+            onChange={handleChange}
+            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400"
           />
         </div>
 
@@ -159,6 +197,9 @@ const NewSubscription = () => {
             onChange={handleChange}
             className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary-dark file:cursor-pointer"
           />
+          {data?.attachment && (
+            <p className="text-xs text-gray-500">Current: {data.attachment}</p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -176,9 +217,9 @@ const NewSubscription = () => {
         </div>
       </div>
 
-      <div className="w-full flex sm:justify-end sm:items-center flex-col sm:flex-row mt-5 gap-4">
+      <div className="w-full flex sm:justify-end flex-col sm:flex-row mt-5 gap-4">
         <Link
-          href={"/scholar/subscriptions"}
+          href={`/scholar/colleges/${collegeId}/subscriptions`}
           className="px-12 py-2.5 text-secondary hover:bg-secondary hover:text-white transition border-2 border-secondary rounded-lg text-center"
         >
           Cancel
@@ -197,5 +238,4 @@ const NewSubscription = () => {
   );
 };
 
-export default NewSubscription;
-
+export default EditCollegeSubscriptionPage;

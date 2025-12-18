@@ -6,16 +6,34 @@ import Table from "@/components/ui/Table";
 import { PencilIcon } from "@hugeicons/core-free-icons";
 import { TrashIcon } from "lucide-react";
 
-export default function Subscriptions() {
+export default function CollegeSubscriptions({
+  collegeId,
+}: {
+  collegeId: string;
+}) {
   const tabs = {
     All: (
       <Table
         title="Subscriptions"
-        dataApiUrl="/subscriptions"
-        createLink="/scholar/subscriptions/new"
-        headers={["College", "Max Students", "Start Date", "Expiry Date", "Total Amount", "Created"]}
-        dataKeys={["collegeName", "maxAllowedStudents", "startDate", "expiryDate", "totalAmount", "createdAt"]}
-        searchKeys={["collegeName"]}
+        dataApiUrl={`/subscriptions?fields=id,name,collegeId,maxAllowedStudents,startDate,expiryDate,totalAmount,isActive,createdAt&conditions={"collegeId":"${collegeId}"}`}
+        createLink={`/scholar/colleges/${collegeId}/subscriptions/new`}
+        headers={[
+          "Subscription Name",
+          "Max Students",
+          "Start Date",
+          "Expiry Date",
+          "Total Amount",
+          "Created",
+        ]}
+        dataKeys={[
+          "name",
+          "maxAllowedStudents",
+          "startDate",
+          "expiryDate",
+          "totalAmount",
+          "createdAt",
+        ]}
+        searchKeys={["name"]}
         dataUniqueKey="id"
         groups={[
           {
@@ -39,14 +57,15 @@ export default function Subscriptions() {
             label: "Edit",
             icon: PencilIcon,
             editLink: (identifier: string) =>
-              `/scholar/subscriptions/${identifier}/edit`,
-            postEditLink: "/scholar/subscriptions",
+              `/scholar/colleges/${collegeId}/subscriptions/${identifier}/edit`,
+            postEditLink: `/scholar/colleges/${collegeId}/subscriptions`,
           },
           delete: {
             label: "Delete subscription? This action cannot be undone.",
             description: "Are you sure you want to delete this subscription?",
             icon: TrashIcon,
-            deleteApiUrl: (identifier: string) => `/subscriptions/${identifier}`,
+            deleteApiUrl: (identifier: string) =>
+              `/subscriptions/${identifier}`,
             reloadAfterDelete: true,
           },
         }}

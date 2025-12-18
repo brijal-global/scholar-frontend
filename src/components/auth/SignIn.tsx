@@ -40,7 +40,7 @@ const SignInForm = () => {
       setErr("");
       setSuccess(true);
       if (res?.data?.role !== "organizationEmployee") {
-        router.push("/scholar");
+        router.push("/scholar/dashboard");
       } else {
         router.push("/dashboard");
       }

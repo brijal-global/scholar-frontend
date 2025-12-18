@@ -19,12 +19,13 @@ interface TableProps {
   showActiveToggle?: boolean;
   dataUniqueKey?: string;
   headers: string[];
-  dataKeys: string[];
+  dataKeys: (string | string[])[];
   searchKeys: string[];
   viewLink?: (identifier: string) => string;
   createLink?: string;
   actions?: any;
   groups?: any;
+  dataTransformer?: (data: any[]) => any[];
 }
 
 const Table = ({
@@ -39,6 +40,7 @@ const Table = ({
   createLink,
   actions = [],
   groups = [],
+  dataTransformer,
 }: TableProps) => {
   // TODO: Implement pagination
   const page = 1;
@@ -59,16 +61,19 @@ const Table = ({
   useEffect(() => {
     if (data) {
       setTimeout(() => {
+        // Apply data transformer if provided
+        const transformedData = dataTransformer ? dataTransformer(data) : data;
+
         setFilteredData(
-          data?.filter((item: any) =>
+          transformedData?.filter((item: any) =>
             searchKeys?.some((key: string) =>
-              item[key]?.toLowerCase().includes(searchTerm.toLowerCase())
+              item?.[key]?.toLowerCase()?.includes(searchTerm?.toLowerCase())
             )
           ) || []
         );
       }, 0);
     }
-  }, [data, searchTerm, dataUniqueKey, searchKeys]);
+  }, [data, searchTerm, dataUniqueKey, searchKeys, dataTransformer]);
 
   const hasGroups = groups.length > 0;
 
@@ -191,16 +196,21 @@ const Table = ({
               </button>
             ))}
           </div>
-          <button
-            className="hidden sm:flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 cursor-pointer"
-            onClick={async () => {
-              await refetch();
-            }}
-            disabled={reloading}
-          >
-            <RefreshCw size={14} className={reloading ? "animate-spin" : ""} />
-            {reloading ? "Refresh" : "Refresh"}
-          </button>
+          {!loading && (
+            <button
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 cursor-pointer"
+              onClick={async () => {
+                await refetch();
+              }}
+              disabled={reloading}
+            >
+              <RefreshCw
+                size={14}
+                className={reloading ? "animate-spin" : ""}
+              />
+              {reloading ? "Refresh" : "Refresh"}
+            </button>
+          )}
         </div>
       )}
       <div className="w-full overflow-x-auto scrollbar pb-3">
@@ -231,13 +241,13 @@ const Table = ({
                   key={item[dataUniqueKey]}
                   className="hover:bg-gray-50 transition"
                 >
-                  {dataKeys?.map((key: string, keyIndex: number) => (
+                  {dataKeys?.map((key: string | string[], keyIndex: number) => (
                     <td
-                      key={key}
+                      key={keyIndex}
                       className="border-t border-gray-300 px-2 py-5 text-left text-sm text-gray-500"
                     >
                       {(() => {
-                        const value = getValue(item, key);
+                        const value = getValue(item, key as string);
 
                         if (keyIndex === 0 && viewLink) {
                           return (

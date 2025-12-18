@@ -6,6 +6,9 @@ import {
   HeartHandshake,
   HouseIcon,
   School,
+  ShieldCheck,
+  User,
+  Users,
 } from "lucide-react";
 
 export const primarySidebarItems = [
@@ -22,18 +25,6 @@ export const primarySidebarItems = [
     href: "/scholar/colleges",
   },
   {
-    id: "users",
-    label: "Users",
-    icon: BookOpen,
-    href: "/scholar/users",
-  },
-  {
-    id: "roles",
-    label: "Roles",
-    icon: GraduationCap,
-    href: "/scholar/roles",
-  },
-  {
     id: "inquiries",
     label: "Inquiries",
     icon: BadgeDollarSign,
@@ -46,10 +37,16 @@ export const primarySidebarItems = [
     href: "/scholar/modules",
   },
   {
-    id: "subscriptions",
-    label: "Subscriptions",
-    icon: Database,
-    href: "/scholar/subscriptions",
+    id: "roles",
+    label: "Roles",
+    icon: ShieldCheck,
+    href: "/scholar/roles",
+  },
+  {
+    id: "users",
+    label: "Users",
+    icon: Users,
+    href: "/scholar/users",
   },
 ];
 
