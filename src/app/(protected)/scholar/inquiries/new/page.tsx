@@ -4,6 +4,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import fetchApi from "@/lib/axios";
+import { inquiryStatuses } from "@/data/enums";
 
 const NewInquiry = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +13,7 @@ const NewInquiry = () => {
     phone: "",
     organizationName: "",
     message: "",
-    status: "pending",
+    status: Object.values(inquiryStatuses)[0] as string,
     replyMessage: "",
   }) as any;
 
@@ -128,9 +129,13 @@ const NewInquiry = () => {
             onChange={handleChange}
             className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm bg-white border border-gray-300"
           >
-            <option value="pending">Pending</option>
-            <option value="replied">Replied</option>
-            <option value="closed">Closed</option>
+            {Object.entries(inquiryStatuses).map(
+              ([key, value]: [string, string]) => (
+                <option key={value} value={value}>
+                  {key}
+                </option>
+              )
+            )}
           </select>
         </div>
 
@@ -171,4 +176,3 @@ const NewInquiry = () => {
 };
 
 export default NewInquiry;
-

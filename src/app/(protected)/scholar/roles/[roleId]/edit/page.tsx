@@ -3,9 +3,9 @@ import EditPage from "@/components/scholar/common/EditPage";
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ roleId: string }>;
 }) {
-  const { id } = await params;
+  const { roleId } = await params;
 
-  return <EditPage id={id} />;
+  return <EditPage roleId={roleId} />;
 }

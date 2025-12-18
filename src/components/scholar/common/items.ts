@@ -2,7 +2,6 @@ import {
   BadgeDollarSign,
   BookOpen,
   Database,
-  FileUser,
   GraduationCap,
   HeartHandshake,
   HouseIcon,
@@ -33,12 +32,6 @@ export const primarySidebarItems = [
     label: "Roles",
     icon: GraduationCap,
     href: "/scholar/roles",
-  },
-  {
-    id: "permissions",
-    label: "Permissions",
-    icon: FileUser,
-    href: "/scholar/permissions",
   },
   {
     id: "inquiries",

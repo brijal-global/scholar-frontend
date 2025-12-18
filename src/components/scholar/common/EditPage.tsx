@@ -9,10 +9,11 @@ import fetchApi from "@/lib/axios";
 import Loader from "@/components/ui/Loader";
 import { toast } from "react-toastify";
 
-const EditPage = ({ id }: { id: string }) => {
+const EditPage = ({ roleId }: { roleId: string }) => {
+  console.log(roleId);
   const [loading, setLoading] = useState(false);
 
-  const { data } = useFetch(`/roles/${id}`) as any;
+  const { data } = useFetch(`/roles/${roleId}`) as any;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -56,7 +57,7 @@ const EditPage = ({ id }: { id: string }) => {
     setLoading(true);
 
     // Send the form data to the server
-    await fetchApi(`/roles/${id}`, {
+    await fetchApi(`/roles/${roleId}`, {
       method: "PUT",
       body: formData,
       showSuccessToast: true,

@@ -1,18 +1,28 @@
-import { Bell, ChevronRight, User, X } from "lucide-react";
+"use client";
+
+import {
+  Bell,
+  ChevronRight,
+  CircleQuestionMark,
+  MessageSquare,
+  User,
+  X,
+} from "lucide-react";
 import {
   primarySidebarItems,
   secondarySidebarItems,
 } from "@/components/scholar/common/items";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = ({ pathname }: { pathname: string }) => {
   const [showNotification, setShowNotification] = useState(false);
   const [showUser, setShowUser] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+  const { userData } = useAuth();
   let title = "";
-
   title =
     primarySidebarItems.find((item) => pathname.includes(item.href))?.label ||
     "";
@@ -29,26 +39,12 @@ const Navbar = ({ pathname }: { pathname: string }) => {
     setShowUser((prev) => !prev);
   };
 
-  const UserInfo = {
-    userID: "1",
-    userName: "James Maharjan",
-    userEmail: "sthajames423@gmail.com",
-  };
-
   const Notifications = [
     {
       id: "1",
       heading: "Yonsei University",
       notification: "Your application has been submitted successfully.",
       time: "Just now",
-      // icon: Icon,
-    },
-    {
-      id: "2",
-      heading: "Yonsei University",
-      notification: "Your application has been submitted successfully.",
-      time: "Just now",
-      // icon: Icon,
     },
   ];
 
@@ -76,20 +72,20 @@ const Navbar = ({ pathname }: { pathname: string }) => {
       <div className="flex flex-row justify-between items-center">
         <p className="text-lg font-medium text-[#252C32]">{title}</p>
         <div className="flex flex-row items-center gap-4 text-[#5B6871] select-none">
-          {/* <div className="flex gap-1 items-center px-3 text-sm cursor-pointer">
-            <MessageSquare className="inline" color="#5B6871" size={16} />
-            Feedback?
-          </div> */}
-          <Bell
-            className="inline cursor-pointer"
-            color="#5B6871"
-            size={18}
-            onClick={handleNotificationClicked}
-          />
           {/* <CircleQuestionMark
             className="inline cursor-pointer"
             color="#5B6871"
             size={18}
+          /> */}
+          {/* <div className="flex gap-1 items-center px-3 text-sm cursor-pointer">
+            <MessageSquare className="inline" color="#5B6871" size={16} />
+            Feedback?
+          </div> */}
+          {/* <Bell
+            className="inline cursor-pointer"
+            color="#5B6871"
+            size={18}
+            onClick={handleNotificationClicked}
           /> */}
           <User
             className="inline cursor-pointer"
@@ -116,12 +112,6 @@ const Navbar = ({ pathname }: { pathname: string }) => {
                 key={notification.id}
                 className="flex space-x-2 items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm"
               >
-                {/* <Image
-                  src={notification.icon}
-                  alt="University Icon"
-                  width={50}
-                  height={50}
-                /> */}
                 <div className="flex flex-col">
                   <p>{notification.heading}</p>
                   <p className="text-sm">{notification.notification}</p>
@@ -140,14 +130,18 @@ const Navbar = ({ pathname }: { pathname: string }) => {
           className="m-4 text-[#838383] absolute top-8 right-0 w-64 bg-white border border-[#E5E9EB] p-4 flex flex-col space-y-2 mt-4 gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm"
         >
           <div>
-            <p className="text-[#252C32] font-semibold">{UserInfo.userName}</p>
-            <p>{UserInfo.userEmail}</p>
+            <p className="text-[#252C32] font-medium">
+              {userData?.firstName} {userData?.lastName}
+            </p>
+            <p className="text-xs text-[#5B6871] text-ellipsis overflow-hidden whitespace-nowrap">
+              {userData?.email}
+            </p>
           </div>
           <hr className="text-[#E1E1E1]" />
-          <Link href="#">Profile</Link>
-          <Link href="#">Setting</Link>
+          <Link href="/scholar/profile">Profile</Link>
+          <Link href="/scholar/settings">Setting</Link>
           <hr className="text-[#E1E1E1]" />
-          <Link href="#" className="text-[#FF8787]">
+          <Link href="/auth/sign-out" className="text-[#FF8787]">
             Logout{" "}
           </Link>
         </div>

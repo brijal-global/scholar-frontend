@@ -6,15 +6,33 @@ import Table from "@/components/ui/Table";
 import { PencilIcon } from "@hugeicons/core-free-icons";
 import { TrashIcon } from "lucide-react";
 
-export default function Permissions() {
+export default function Permissions({ roleId }: { roleId: string }) {
   const tabs = {
     All: (
       <Table
         title="Permissions"
-        dataApiUrl="/permissions"
-        createLink="/scholar/permissions/new"
-        headers={["Name", "Route", "Role", "View", "Update", "Create", "Delete", "Created"]}
-        dataKeys={["name", "route", "roleName", "canView", "canUpdate", "canCreate", "canDelete", "createdAt"]}
+        dataApiUrl={`/permissions?fields=id,name,route,canView,canUpdate,canCreate,canDelete,isActive,createdAt&populate=role&conditions={"roleId":"${roleId}"}`}
+        createLink={`/scholar/roles/${roleId}/permissions/new`}
+        headers={[
+          "Name",
+          "Route",
+          "Role",
+          "Get",
+          "Put",
+          "Post",
+          "Delete",
+          "Created",
+        ]}
+        dataKeys={[
+          "name",
+          "route",
+          ["role", "name"],
+          "canView",
+          "canUpdate",
+          "canCreate",
+          "canDelete",
+          "createdAt",
+        ]}
         searchKeys={["name", "route"]}
         dataUniqueKey="id"
         groups={[
@@ -39,8 +57,8 @@ export default function Permissions() {
             label: "Edit",
             icon: PencilIcon,
             editLink: (identifier: string) =>
-              `/scholar/permissions/${identifier}/edit`,
-            postEditLink: "/scholar/permissions",
+              `/scholar/roles/${roleId}/permissions/${identifier}/edit`,
+            postEditLink: `/scholar/roles/${roleId}/permissions`,
           },
           delete: {
             label: "Delete permission? This action cannot be undone.",

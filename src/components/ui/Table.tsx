@@ -11,6 +11,21 @@ import useFetch from "@/hooks/useFetch";
 
 import Chip from "@/components/ui/Chip";
 import { SecondaryOutlineButton } from "@/components/ui/Buttons";
+import { formatDate } from "@/utils/dateFormatters";
+
+interface TableProps {
+  title: string;
+  dataApiUrl: string;
+  showActiveToggle?: boolean;
+  dataUniqueKey?: string;
+  headers: string[];
+  dataKeys: string[];
+  searchKeys: string[];
+  viewLink?: (identifier: string) => string;
+  createLink?: string;
+  actions?: any;
+  groups?: any;
+}
 
 const Table = ({
   title,
@@ -24,12 +39,22 @@ const Table = ({
   createLink,
   actions = [],
   groups = [],
-}: any) => {
+}: TableProps) => {
+  // TODO: Implement pagination
+  const page = 1;
+  const limit = 1000;
+
+  const dataApiUrlWithPagination = `${dataApiUrl}${
+    dataApiUrl.includes("?") ? "&" : "?"
+  }page=${page}&limit=${limit}`;
+
   const { data, loading, reloading, refetch, error } = useFetch(
-    dataApiUrl
+    dataApiUrlWithPagination
   ) as any;
   const [searchTerm, setSearchTerm] = useState("") as any;
   const [filteredData, setFilteredData] = useState(data) as any;
+
+  const editApiBaseUrl = dataApiUrl?.split("?")[0];
 
   useEffect(() => {
     if (data) {
@@ -83,7 +108,7 @@ const Table = ({
   const showTabs = hasGroups && groupedData && tabs.length > 0;
 
   const toggleActive = async (identifier: string, active: boolean) => {
-    const res = await fetchApi(`${dataApiUrl}/${identifier}`, {
+    const res = await fetchApi(`${editApiBaseUrl}/${identifier}`, {
       method: "PUT",
       body: {
         isActive: active,
@@ -100,6 +125,28 @@ const Table = ({
         }
       });
     }
+  };
+
+  // Handle nested keys like ["role", "name"] or simple keys like "name"
+  const getValue = (obj: any, keyPath: string | string[]) => {
+    if (Array.isArray(keyPath)) {
+      return keyPath.reduce((current, key) => current?.[key], obj);
+    } else if (
+      [
+        "createdAt",
+        "updatedAt",
+        "startDate",
+        "endDate",
+        "expiryDate",
+        "date",
+      ].includes(keyPath)
+    ) {
+      return formatDate(obj?.[keyPath], "long");
+    } else if (typeof obj?.[keyPath] === "boolean") {
+      return obj?.[keyPath] ? "True" : "False";
+    }
+
+    return obj?.[keyPath];
   };
 
   return (
@@ -145,7 +192,7 @@ const Table = ({
             ))}
           </div>
           <button
-            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 cursor-pointer"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 text-xs font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50 cursor-pointer"
             onClick={async () => {
               await refetch();
             }}
@@ -189,13 +236,19 @@ const Table = ({
                       key={key}
                       className="border-t border-gray-300 px-2 py-5 text-left text-sm text-gray-500"
                     >
-                      {keyIndex === 0 && viewLink ? (
-                        <Link href={viewLink(item?.id)}>
-                          {item?.[key] || "N/A"}
-                        </Link>
-                      ) : (
-                      item?.[key] ? String(item?.[key]) : "N/A"
-                      )}
+                      {(() => {
+                        const value = getValue(item, key);
+
+                        if (keyIndex === 0 && viewLink) {
+                          return (
+                            <Link href={viewLink(item?.id)}>
+                              {value || "N/A"}
+                            </Link>
+                          );
+                        }
+
+                        return value ? String(value) : "N/A";
+                      })()}
                     </td>
                   ))}
 

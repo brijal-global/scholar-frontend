@@ -11,10 +11,17 @@ export default function Inquiries() {
     All: (
       <Table
         title="Inquiries"
-        dataApiUrl="/inquiries"
+        dataApiUrl="/inquiries?fields=id,fullName,email,phone,organizationName,status,createdAt"
         createLink="/scholar/inquiries/new"
-        headers={["Full Name", "Email", "Phone", "Organization", "Status", "Created"]}
-        dataKeys={["fullName", "email", "phone", "organizationName", "status", "createdAt"]}
+        headers={["Full Name", "Email", "Phone", "Organization", "Created"]}
+        showActiveToggle={false}
+        dataKeys={[
+          "fullName",
+          "email",
+          "phone",
+          "organizationName",
+          "createdAt",
+        ]}
         searchKeys={["fullName", "email", "phone", "organizationName"]}
         dataUniqueKey="id"
         groups={[
@@ -24,19 +31,24 @@ export default function Inquiries() {
             values: ["pending"],
           },
           {
-            label: "Replied",
+            label: "Hold",
             dataKey: "status",
-            values: ["replied"],
+            values: ["hold"],
           },
           {
-            label: "Closed",
+            label: "Resolved",
             dataKey: "status",
-            values: ["closed"],
+            values: ["resolved"],
+          },
+          {
+            label: "Rejected",
+            dataKey: "status",
+            values: ["rejected"],
           },
           {
             label: "All",
             dataKey: "status",
-            values: ["pending", "replied", "closed"],
+            values: ["pending", "hold", "resolved", "rejected"],
           },
         ]}
         actions={{

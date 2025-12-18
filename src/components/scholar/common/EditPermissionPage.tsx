@@ -8,14 +8,22 @@ import useFetch from "@/hooks/useFetch";
 import fetchApi from "@/lib/axios";
 import Loader from "@/components/ui/Loader";
 
-const EditPermissionPage = ({ id }: { id: string }) => {
+const EditPermissionPage = ({
+  permissionId,
+  roleId,
+}: {
+  permissionId: string;
+  roleId: string;
+}) => {
   const [loading, setLoading] = useState(false);
 
-  const { data } = useFetch(`/permissions/${id}`) as any;
-  const { data: roles } = useFetch("/roles") as any;
+  const { data } = useFetch(`/permissions/${permissionId}`) as any;
+  const { data: roles } = useFetch(
+    `/roles?fields=name,id&conditions={"id":"${roleId}"}`
+  ) as any;
 
   const [formData, setFormData] = useState({
-    roleId: "",
+    roleId: roleId,
     name: "",
     route: "",
     canView: false,
@@ -38,11 +46,11 @@ const EditPermissionPage = ({ id }: { id: string }) => {
     setLoading(true);
 
     // Send the form data to the server
-    await fetchApi(`/permissions/${id}`, {
+    await fetchApi(`/permissions/${permissionId}`, {
       method: "PUT",
       body: formData,
       showSuccessToast: true,
-      successRoute: "/scholar/permissions",
+      successRoute: `/scholar/roles/${roleId}/permissions`,
     });
 
     setLoading(false);
@@ -80,6 +88,7 @@ const EditPermissionPage = ({ id }: { id: string }) => {
             value={formData.roleId}
             required
             onChange={handleChange}
+            disabled
             className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm bg-white border border-gray-300"
           >
             <option value="">Select a role</option>
@@ -175,7 +184,7 @@ const EditPermissionPage = ({ id }: { id: string }) => {
 
       <div className="w-full flex sm:justify-end flex-col sm:flex-row mt-5 gap-4">
         <Link
-          href={"/scholar/permissions"}
+          href={`/scholar/roles/${roleId}/permissions`}
           className="px-12 py-2.5 text-secondary hover:bg-secondary hover:text-white transition border-2 border-secondary rounded-lg text-center"
         >
           Cancel
@@ -195,4 +204,3 @@ const EditPermissionPage = ({ id }: { id: string }) => {
 };
 
 export default EditPermissionPage;
-

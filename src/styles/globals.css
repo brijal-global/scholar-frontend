@@ -29,7 +29,7 @@
 
 input,
 textarea {
-  @apply border-1 border-gray-300 focus:outline-1 focus:outline-primary focus:outline-offset-0  ring-0 focus:border-transparent;
+  @apply border border-gray-300 focus:outline-1 focus:outline-primary focus:outline-offset-0  ring-0 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300;
 }
 
 input[type="checkbox"],
@@ -63,5 +63,5 @@ input[type="radio"] {
 }
 
 select {
-  @apply border-1 border-gray-300 focus:outline-1 focus:outline-primary focus:outline-offset-0  ring-0 focus:border-transparent;
+  @apply border border-gray-300 focus:outline-1 focus:outline-primary focus:outline-offset-0  ring-0 focus:border-transparent disabled:bg-gray-100 disabled:text-gray-500 disabled:border-gray-300;
 }

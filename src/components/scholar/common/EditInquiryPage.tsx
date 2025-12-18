@@ -7,6 +7,7 @@ import Link from "next/link";
 import useFetch from "@/hooks/useFetch";
 import fetchApi from "@/lib/axios";
 import Loader from "@/components/ui/Loader";
+import { inquiryStatuses } from "@/data/enums";
 
 const EditInquiryPage = ({ id }: { id: string }) => {
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,7 @@ const EditInquiryPage = ({ id }: { id: string }) => {
     phone: "",
     organizationName: "",
     message: "",
-    status: "pending",
+    status: Object.values(inquiryStatuses)[0] as string,
     replyMessage: "",
   }) as any;
 
@@ -55,7 +56,7 @@ const EditInquiryPage = ({ id }: { id: string }) => {
           phone: data.phone || "",
           organizationName: data.organizationName || "",
           message: data.message || "",
-          status: data.status || "pending",
+          status: data.status || (Object.values(inquiryStatuses)[0] as string),
           replyMessage: data.replyMessage || "",
         });
       }, 0);
@@ -152,9 +153,13 @@ const EditInquiryPage = ({ id }: { id: string }) => {
             onChange={handleChange}
             className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm bg-white border border-gray-300"
           >
-            <option value="pending">Pending</option>
-            <option value="replied">Replied</option>
-            <option value="closed">Closed</option>
+            {Object.entries(inquiryStatuses).map(
+              ([key, value]: [string, string]) => (
+                <option key={value} value={value}>
+                  {key}
+                </option>
+              )
+            )}
           </select>
         </div>
 
@@ -195,4 +200,3 @@ const EditInquiryPage = ({ id }: { id: string }) => {
 };
 
 export default EditInquiryPage;
-

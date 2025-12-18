@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import fetchApi from "@/lib/axios";
 import useFetch from "@/hooks/useFetch";
 
-const NewPermission = () => {
+const NewPermission = ({ roleId }: { roleId: string }) => {
   const [formData, setFormData] = useState({
-    roleId: "",
+    roleId: roleId,
     name: "",
     route: "",
     canView: false,
@@ -20,7 +20,7 @@ const NewPermission = () => {
   const [loading, setLoading] = useState(false);
 
   // Fetch roles for the dropdown
-  const { data: roles } = useFetch("/roles") as any;
+  const { data: roles } = useFetch("/roles?fields=name,id") as any;
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -39,8 +39,8 @@ const NewPermission = () => {
       method: "POST",
       body: formData,
       showSuccessToast: true,
-      successRoute: "/scholar/permissions",
-      errorRoute: "/scholar/permissions/new",
+      successRoute: `/scholar/roles/${roleId}/permissions`,
+      errorRoute: `/scholar/roles/${roleId}/permissions/new`,
     });
 
     setLoading(false);
@@ -58,6 +58,7 @@ const NewPermission = () => {
             value={formData.roleId}
             required
             onChange={handleChange}
+            disabled
             className="w-full text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400 py-2.5 px-4 text-sm bg-white border border-gray-300"
           >
             <option value="">Select a role</option>
@@ -173,4 +174,3 @@ const NewPermission = () => {
 };
 
 export default NewPermission;
-

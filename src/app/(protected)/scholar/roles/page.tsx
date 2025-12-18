@@ -11,12 +11,15 @@ export default function Roles() {
     All: (
       <Table
         title="Roles"
-        dataApiUrl="/roles"
+        dataApiUrl="/roles?fields=id,name,isActive,createdAt"
         createLink="/scholar/roles/new"
-        headers={["Name", "Description", "Created"]}
-        dataKeys={["name", "description", "createdAt"]}
-        searchKeys={["name", "description"]}
+        headers={["Name", "Created"]}
+        dataKeys={["name", "createdAt"]}
+        searchKeys={["name"]}
         dataUniqueKey="id"
+        viewLink={(identifier: string) =>
+          `/scholar/roles/${identifier}/permissions`
+        }
         groups={[
           {
             label: "Active",

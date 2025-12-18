@@ -11,10 +11,24 @@ export default function PlanModules() {
     All: (
       <Table
         title="Plan Modules"
-        dataApiUrl="/plan-modules"
+        dataApiUrl="/plan-modules?fields=id,name,code,monthlyPrice,offerName,offerMonthlyPrice,isActive,createdAt"
         createLink="/scholar/modules/new"
-        headers={["Name", "Code", "Monthly Price", "Offer Name", "Offer Price", "Created"]}
-        dataKeys={["name", "code", "monthlyPrice", "offerName", "offerMonthlyPrice", "createdAt"]}
+        headers={[
+          "Name",
+          "Code",
+          "Monthly Price",
+          "Offer Name",
+          "Offer Price",
+          "Created",
+        ]}
+        dataKeys={[
+          "name",
+          "code",
+          "monthlyPrice",
+          "offerName",
+          "offerMonthlyPrice",
+          "createdAt",
+        ]}
         searchKeys={["name", "code", "offerName"]}
         dataUniqueKey="id"
         groups={[
