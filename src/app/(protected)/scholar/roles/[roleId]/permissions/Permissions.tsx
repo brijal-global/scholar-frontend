@@ -17,9 +17,9 @@ export default function Permissions({ roleId }: { roleId: string }) {
           "Name",
           "Route",
           "Role",
-          "Get",
-          "Put",
-          "Post",
+          "View",
+          "Update",
+          "Create",
           "Delete",
           "Created",
         ]}
