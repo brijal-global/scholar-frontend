@@ -163,7 +163,9 @@ const Table = ({
           </span>
 
           {data?.length > 0 && (
-            <Chip text={`${data?.length} ${title?.toLowerCase()} found`} />
+            <Chip
+              text={`${filteredData?.length} ${title?.toLowerCase()} found`}
+            />
           )}
         </div>
         <input

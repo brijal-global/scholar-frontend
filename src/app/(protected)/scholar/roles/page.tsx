@@ -37,6 +37,9 @@ export default function Roles() {
             values: [true, false],
           },
         ]}
+        dataTransformer={(data: any[]) =>
+          data.map((item) => item?.name !== "superAdmin" && item)
+        }
         actions={{
           edit: {
             label: "Edit",

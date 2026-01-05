@@ -35,11 +35,14 @@ export default function Users() {
         ]}
         searchKeys={["firstName", "lastName", "email", "phone", "role"]}
         dataTransformer={(data: any[]) =>
-          data.map((item) => ({
-            ...item,
-            fullName: `${item.firstName} ${item.lastName}`,
-            role: item.role?.name,
-          }))
+          data.map(
+            (item) =>
+              item?.role?.name !== "superAdmin" && {
+                ...item,
+                fullName: `${item.firstName} ${item.lastName}`,
+                role: item.role?.name,
+              }
+          )
         }
         groups={[
           {
