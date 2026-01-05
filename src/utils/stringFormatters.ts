@@ -11,3 +11,22 @@ export function formatCamelCase(str: string) {
 export function isValidLink(link: string) {
   return link.startsWith("http://") || link.startsWith("https://");
 }
+
+export function formatRoute(route: string) {
+  route =
+    route
+      ?.replace("/api/", "")
+      ?.replace(" ", "")
+      ?.replace(":", "")
+      ?.replace("//", "/") || "";
+
+  if (route.startsWith("/")) {
+    route = route.slice(1);
+  }
+
+  if (route.endsWith("/")) {
+    route = route.slice(0, -1);
+  }
+
+  return route;
+}

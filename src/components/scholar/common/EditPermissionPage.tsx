@@ -7,6 +7,7 @@ import Link from "next/link";
 import useFetch from "@/hooks/useFetch";
 import fetchApi from "@/lib/axios";
 import Loader from "@/components/ui/Loader";
+import { formatRoute } from "@/utils/stringFormatters";
 
 const EditPermissionPage = ({
   permissionId,
@@ -34,6 +35,7 @@ const EditPermissionPage = ({
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
+
     setFormData({
       ...formData,
       [name]: type === "checkbox" ? checked : value,
@@ -45,10 +47,15 @@ const EditPermissionPage = ({
 
     setLoading(true);
 
+    const payload = {
+      ...formData,
+      route: `/api/${formatRoute(formData.route)}`,
+    };
+
     // Send the form data to the server
     await fetchApi(`/permissions/${permissionId}`, {
       method: "PUT",
-      body: formData,
+      body: payload,
       showSuccessToast: true,
       successRoute: `/scholar/roles/${roleId}/permissions`,
     });
@@ -62,7 +69,7 @@ const EditPermissionPage = ({
         setFormData({
           roleId: data.roleId || "",
           name: data.name || "",
-          route: data.route || "",
+          route: `${formatRoute(data.route || "")}`,
           canView: data.canView || false,
           canUpdate: data.canUpdate || false,
           canCreate: data.canCreate || false,
@@ -119,15 +126,31 @@ const EditPermissionPage = ({
           <label htmlFor="route" className="text-base">
             Route <span className="text-red-500 text-sm">*</span>
           </label>
-          <input
-            type="text"
-            name="route"
-            value={formData?.route || ""}
-            required
-            onChange={handleChange}
-            placeholder="Route path (e.g., /users)"
-            className="w-full p-2.5 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-lg outline-gray-400"
-          />
+          <div className="flex gap-0">
+            <input
+              type="text"
+              name="route-prefix"
+              value="/api/"
+              disabled
+              className="w-auto text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-l-lg outline-none py-2.5 px-4 text-sm"
+            />
+            <input
+              type="text"
+              name="route"
+              value={formData.route}
+              required
+              onChange={handleChange}
+              placeholder="xx/xx/xx"
+              className="w-full flex-1 text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-none py-2.5 px-4 text-sm border-t-0 border-b-0 border-l-0! border-r-0! border-gray-300! outline-none!"
+            />
+            <input
+              type="text"
+              name="route-suffix"
+              value=":identifier"
+              disabled
+              className="w-auto text-darkText placeholder-[#555555] font-normal component-paragraphs rounded-r-lg outline-nonepy-2.5 px-4 text-sm"
+            />
+          </div>
         </div>
 
         <div className="md:col-span-2">
