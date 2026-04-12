@@ -48,7 +48,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     data: userData,
     hitApi: refetch,
     isFinished,
-  } = useFetch(authEndpoints.me) as any;
+  } = useFetch(authEndpoints.me, {
+    showErrorToast: false,
+  }) as any;
 
   useEffect(() => {
     if (isFinished) {

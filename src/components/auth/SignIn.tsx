@@ -39,11 +39,6 @@ const SignInForm = () => {
     if (res?.success) {
       setErr("");
       setSuccess(true);
-      if (res?.data?.role !== "organizationEmployee") {
-        router.push("/scholar/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
     } else {
       setErr(res?.message);
     }
