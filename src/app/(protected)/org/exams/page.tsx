@@ -90,16 +90,42 @@ function EnterMarksView({ exam }: { exam: any }) {
     ? studentsRaw
     : (studentsRaw?.rows ?? []);
 
+  /* Existing marks for selected exam module — to pre-populate */
+  const { data: existingMarksRaw, refetch: refetchMarks } = useFetch(
+    selectedExamModuleId
+      ? `/module-marks?conditions=${JSON.stringify({ examModuleId: selectedExamModuleId })}&limit=500`
+      : "",
+    { now: !!selectedExamModuleId },
+  ) as any;
+  const existingMarks: any[] =
+    existingMarksRaw?.rows || (Array.isArray(existingMarksRaw) ? existingMarksRaw : []);
+
   const selectedExamModule = examModules.find(
     (em: any) => em.id === selectedExamModuleId,
   );
 
-  /* reset marks when group or module changes */
+  /* Pre-populate marks from existing records when examModule or students change */
   useEffect(() => {
-    setTimeout(() => {
+    if (!existingMarks.length) {
       setMarks({});
-    }, 0);
-  }, [selectedGroupId, selectedExamModuleId]);
+      return;
+    }
+    const populated: Record<string, string> = {};
+    existingMarks.forEach((m: any) => {
+      populated[m.studentId] = String(m.obtainedMarks ?? "");
+    });
+    setMarks(populated);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedExamModuleId, existingMarksRaw]);
+
+  const handleMarkChange = (studentId: string, value: string) => {
+    if (value !== "" && selectedExamModule) {
+      const num = Number(value);
+      if (num < 0) return;
+      if (num > Number(selectedExamModule.totalMarks)) return;
+    }
+    setMarks((prev) => ({ ...prev, [studentId]: value }));
+  };
 
   const handleSubmitMarks = async () => {
     if (!selectedExamModuleId)
@@ -109,22 +135,34 @@ function EnterMarksView({ exam }: { exam: any }) {
     if (!entries.length)
       return toast.error("Enter marks for at least one student");
 
+    // Build a map of existing marks by studentId for upsert logic
+    const existingMap: Record<string, any> = Object.fromEntries(
+      existingMarks.map((m: any) => [m.studentId, m]),
+    );
+
     setSubmitting(true);
     try {
       await Promise.all(
-        entries.map(([studentId, obtainedMarks]) =>
-          fetchApi("/module-marks", {
+        entries.map(([studentId, obtainedMarks]) => {
+          const existing = existingMap[studentId];
+          if (existing?.id) {
+            return fetchApi(`/module-marks/${existing.id}`, {
+              method: "PUT",
+              body: { obtainedMarks: Number(obtainedMarks) },
+            });
+          }
+          return fetchApi("/module-marks", {
             method: "POST",
             body: {
-              studentId, // studentDetails.id
+              studentId,
               examModuleId: selectedExamModuleId,
               obtainedMarks: Number(obtainedMarks),
             },
-          }),
-        ),
+          });
+        }),
       );
       toast.success(`Marks saved for ${entries.length} student(s)`);
-      setMarks({});
+      await refetchMarks();
     } catch {
       toast.error("Failed to save marks");
     } finally {
@@ -145,15 +183,13 @@ function EnterMarksView({ exam }: { exam: any }) {
             <option value="">— Select Module —</option>
             {examModules.map((em: any) => (
               <option key={em.id} value={em.id}>
-                {moduleNameMap[em.moduleId] || em.moduleId} — {em.examType} (/
-                {em.totalMarks})
+                {moduleNameMap[em.moduleId] || em.moduleId} — {em.examType} (/{em.totalMarks})
               </option>
             ))}
           </select>
           {examModules.length === 0 && (
             <p className="text-xs text-amber-600 mt-1">
-              No exam modules found. Add modules via the &quot;Exam
-              Modules&quot; tab first.
+              No exam modules found. Add modules via the &quot;Exam Modules&quot; tab first.
             </p>
           )}
         </div>
@@ -166,9 +202,7 @@ function EnterMarksView({ exam }: { exam: any }) {
           >
             <option value="">— Select Group —</option>
             {groups.map((g: any) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
+              <option key={g.id} value={g.id}>{g.name}</option>
             ))}
           </select>
         </div>
@@ -186,14 +220,9 @@ function EnterMarksView({ exam }: { exam: any }) {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="text-left py-2 px-4 font-medium">Student Name</th>
                       <th className="text-left py-2 px-4 font-medium">
-                        Student Name
-                      </th>
-                      <th className="text-left py-2 px-4 font-medium">
-                        Marks{" "}
-                        {selectedExamModule
-                          ? `(out of ${selectedExamModule.totalMarks})`
-                          : ""}
+                        Marks {selectedExamModule ? `(out of ${selectedExamModule.totalMarks})` : ""}
                       </th>
                     </tr>
                   </thead>
@@ -211,12 +240,7 @@ function EnterMarksView({ exam }: { exam: any }) {
                             min="0"
                             max={selectedExamModule?.totalMarks || undefined}
                             value={marks[student.id] ?? ""}
-                            onChange={(e) =>
-                              setMarks({
-                                ...marks,
-                                [student.id]: e.target.value,
-                              })
-                            }
+                            onChange={(e) => handleMarkChange(student.id, e.target.value)}
                             className="py-1.5 px-3 border border-gray-200 rounded-md w-28 text-sm"
                             placeholder="—"
                           />
@@ -276,6 +300,12 @@ function ExamModulesManager({ exam }: { exam: any }) {
     if (!examType) return toast.error("Select exam type");
     if (!totalMarks || isNaN(Number(totalMarks)) || Number(totalMarks) <= 0)
       return toast.error("Enter valid total marks");
+
+    // Prevent adding the same module twice
+    if (examModules.some((em: any) => em.moduleId === moduleId)) {
+      return toast.error("This module has already been added to the exam");
+    }
+
     setSaving(true);
     try {
       await fetchApi("/exam-modules", {
@@ -310,11 +340,14 @@ function ExamModulesManager({ exam }: { exam: any }) {
             className="py-2 px-3 rounded-md border border-gray-200 w-full"
           >
             <option value="">Select module</option>
-            {programModules.map((m: any) => (
-              <option key={m.id} value={m.id}>
-                {m.name} ({m.code})
-              </option>
-            ))}
+            {programModules.map((m: any) => {
+              const alreadyAdded = examModules.some((em: any) => em.moduleId === m.id);
+              return (
+                <option key={m.id} value={m.id} disabled={alreadyAdded}>
+                  {m.name} ({m.code}){alreadyAdded ? " — Already added" : ""}
+                </option>
+              );
+            })}
           </select>
         </div>
         <div>

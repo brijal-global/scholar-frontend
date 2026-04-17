@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Table from "@/components/ui/Table";
 import { useOrg } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
@@ -32,7 +33,8 @@ const EMPTY_FORM = {
 
 export default function ModulesPage() {
   const { collegeId, loading: orgLoading } = useOrg();
-  const [selectedProgramId, setSelectedProgramId] = useState("");
+  const searchParams = useSearchParams();
+  const [selectedProgramId, setSelectedProgramId] = useState(searchParams.get("programId") || "");
 
   /* modals */
   const [createOpen, setCreateOpen] = useState(false);
@@ -135,15 +137,15 @@ export default function ModulesPage() {
           title="Modules"
           dataApiUrl={dataUrl}
           headers={["Name", "Code", "Program", "Credits", "Description"]}
-          dataKeys={["name", "code", "programId", "credits", "description"]}
-          searchKeys={["name", "code"]}
-          onRowClick={(item) => setViewItem({ ...item, programName: programMap[item.programId] })}
+          dataKeys={["name", "code", "programName", "credits", "description"]}
+          searchKeys={["name", "code", "programName"]}
+          onRowClick={(item) => setViewItem(item)}
           onCreateClick={() => setCreateOpen(true)}
           extraFilters={programFilter}
           dataTransformer={(data) =>
             data.map((item: any) => ({
               ...item,
-              programId: programMap[item.programId] || item.programId,
+              programName: programMap[item.programId] || item.programId,
             }))
           }
         />
@@ -167,7 +169,7 @@ export default function ModulesPage() {
             <div className="grid grid-cols-2 gap-4 text-sm">
               <Detail label="Name" value={viewItem.name} />
               <Detail label="Code" value={viewItem.code} />
-              <Detail label="Program" value={viewItem.programName || programMap[viewItem.programId]} />
+              <Detail label="Program" value={viewItem.programName || programMap[viewItem.programId] || viewItem.programId} />
               <Detail label="Credits" value={viewItem.credits} />
             </div>
             {viewItem.description && (

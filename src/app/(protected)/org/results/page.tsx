@@ -128,7 +128,13 @@ export default function ResultsPage() {
     examModuleId: string,
     field: "obtainedMarks" | "remarks",
     value: string,
+    totalMarks?: number,
   ) => {
+    if (field === "obtainedMarks" && totalMarks !== undefined && value !== "") {
+      const numeric = Number(value);
+      if (numeric < 0) return;
+      if (numeric > totalMarks) return;
+    }
     setEdits((prev) => ({
       ...prev,
       [studentDetailId]: {
@@ -150,6 +156,19 @@ export default function ResultsPage() {
     );
     if (!entries.length)
       return toast.error("No marks entered for this student");
+
+    // Validate marks don't exceed total marks
+    for (const [examModuleId, { obtainedMarks }] of entries) {
+      const em = resultsData?.examModules.find((m) => m.id === examModuleId);
+      if (em && Number(obtainedMarks) > em.totalMarks) {
+        return toast.error(
+          `Marks for ${em.moduleName} cannot exceed total marks (${em.totalMarks})`,
+        );
+      }
+      if (Number(obtainedMarks) < 0) {
+        return toast.error("Marks cannot be negative");
+      }
+    }
 
     setSavingStudent(student.studentDetailId);
     try {
@@ -385,6 +404,7 @@ export default function ResultsPage() {
                                       em.id,
                                       "obtainedMarks",
                                       e.target.value,
+                                      em.totalMarks,
                                     )
                                   }
                                   className="py-1.5 px-3 border border-gray-200 rounded-md w-24 text-sm focus:ring-1 focus:ring-primary focus:border-primary"

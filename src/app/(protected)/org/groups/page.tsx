@@ -139,13 +139,13 @@ export default function GroupsPage() {
           title="Groups"
           dataApiUrl={dataUrl}
           headers={["Name", "Batch", "Year", "Description"]}
-          dataKeys={["name", "batchId", "year", "description"]}
-          searchKeys={["name"]}
-          onRowClick={(item) => setViewItem({ ...item, batchName: batchMap[item.batchId] })}
+          dataKeys={["name", "batchName", "year", "description"]}
+          searchKeys={["name", "batchName"]}
+          onRowClick={(item) => setViewItem(item)}
           onCreateClick={() => setCreateOpen(true)}
           extraFilters={filters}
           dataTransformer={(data) =>
-            data.map((item: any) => ({ ...item, batchId: batchMap[item.batchId] || item.batchId }))
+            data.map((item: any) => ({ ...item, batchName: batchMap[item.batchId] || item.batchId }))
           }
         />
       ) : (
@@ -174,7 +174,7 @@ export default function GroupsPage() {
         {viewItem && (
           <div className="grid grid-cols-2 gap-4 py-2 text-sm">
             <Detail label="Name" value={viewItem.name} />
-            <Detail label="Batch" value={viewItem.batchName} />
+            <Detail label="Batch" value={viewItem.batchName || batchMap[viewItem.batchId]} />
             <Detail label="Year" value={viewItem.year} />
             <Detail label="Description" value={viewItem.description} />
           </div>

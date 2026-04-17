@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
-import OAuthOptions from "./OAuthOptions";
 import { useRouter } from "next/navigation";
 
 const SignInForm = () => {
@@ -127,15 +126,6 @@ const SignInForm = () => {
             </span>
           </div>
 
-          <div className="flex justify-end items-center text-xs select-none">
-            <Link
-              href="/forgot-password"
-              className="text-primary font-medium hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
           <input
             type="submit"
             className="bg-primary hover:bg-primary-dark transition text-white font-semibold py-3 px-4 rounded cursor-pointer text-sm select-none"
@@ -154,8 +144,6 @@ const SignInForm = () => {
             Sign in successful! Redirecting...
           </p>
         )}
-
-        <OAuthOptions />
 
         <div className="flex justify-center items-center gap-x-2 mt-4 select-none">
           <p className="text-sm text-gray-500">

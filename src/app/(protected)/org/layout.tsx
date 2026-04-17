@@ -19,7 +19,13 @@ import { footerLinks } from "@/data/contact";
 
 function OrgDesktopSidebar({ pathname }: { pathname: string }) {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const { collegeName } = useOrg();
+  const { collegeName, permissions, isAdmin, permissionsLoaded } = useOrg();
+
+  const visibleItems = primaryOrgSidebarItems.filter((item) => {
+    if (!permissionsLoaded || isAdmin) return true;
+    const perm = permissions[item.id];
+    return perm?.canView !== false;
+  });
 
   return (
     <nav className="hidden lg:flex w-full h-full overflow-y-auto bg-[#fdfdfd] py-2 lg:py-4 px-2 lg:px-4 flex-col border-r border-[#E5E9EB]">
@@ -31,7 +37,7 @@ function OrgDesktopSidebar({ pathname }: { pathname: string }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        {primaryOrgSidebarItems.map((item) => (
+        {visibleItems.map((item) => (
           <Link
             key={item.id}
             href={item.href}
@@ -95,7 +101,13 @@ function OrgDesktopSidebar({ pathname }: { pathname: string }) {
 
 function OrgMobileSidebar({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
-  const { collegeName } = useOrg();
+  const { collegeName, permissions, isAdmin, permissionsLoaded } = useOrg();
+
+  const visibleItems = primaryOrgSidebarItems.filter((item) => {
+    if (!permissionsLoaded || isAdmin) return true;
+    const perm = permissions[item.id];
+    return perm?.canView !== false;
+  });
 
   useEffect(() => {
     setTimeout(() => setOpen(false), 0);
@@ -127,7 +139,7 @@ function OrgMobileSidebar({ pathname }: { pathname: string }) {
       >
         <div className="overflow-y-auto grow scrollbar space-y-2">
           <div className="flex flex-col gap-1.5">
-            {primaryOrgSidebarItems.map((item) => (
+            {visibleItems.map((item) => (
               <Link
                 key={item.id}
                 href={item.href}

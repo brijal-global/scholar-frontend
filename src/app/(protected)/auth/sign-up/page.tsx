@@ -8,12 +8,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
 import { collegeTypes } from "@/data/enums";
 import { genders } from "@/data/enums";
-import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle, User, Building2, ClipboardList } from "lucide-react";
 
 const steps = [
-  { id: 1, label: "Personal Info" },
-  { id: 2, label: "College Info" },
-  { id: 3, label: "Review & Submit" },
+  { id: 1, label: "Personal Info", icon: User },
+  { id: 2, label: "College Info", icon: Building2 },
+  { id: 3, label: "Review & Submit", icon: ClipboardList },
 ];
 
 const SignUpPage = () => {
@@ -164,37 +164,32 @@ const SignUpPage = () => {
 
         {/* Step indicators */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          {steps.map((step) => (
-            <div key={step.id} className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
-                  currentStep >= step.id
-                    ? "bg-primary text-white"
-                    : "bg-gray-200 text-gray-500"
-                }`}
-              >
-                {currentStep > step.id ? (
-                  <CheckCircle size={16} />
-                ) : (
-                  step.id
+          {steps.map((step) => {
+            const StepIcon = step.icon;
+            return (
+              <div key={step.id} className="flex items-center gap-2">
+                <div
+                  title={step.label}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                    currentStep >= step.id
+                      ? "bg-primary text-white"
+                      : "bg-gray-200 text-gray-400"
+                  }`}
+                >
+                  {currentStep > step.id ? (
+                    <CheckCircle size={18} />
+                  ) : (
+                    <StepIcon size={18} />
+                  )}
+                </div>
+                {step.id < 3 && (
+                  <div
+                    className={`w-10 h-px ${currentStep > step.id ? "bg-primary" : "bg-gray-300"}`}
+                  />
                 )}
               </div>
-              <span
-                className={`text-xs hidden sm:inline ${
-                  currentStep >= step.id
-                    ? "text-primary font-medium"
-                    : "text-gray-400"
-                }`}
-              >
-                {step.label}
-              </span>
-              {step.id < 3 && (
-                <div
-                  className={`w-8 h-px ${currentStep > step.id ? "bg-primary" : "bg-gray-300"}`}
-                />
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <form onSubmit={handleSubmit}>

@@ -12,6 +12,27 @@ import { genders } from "@/data/enums";
 import { formatDate } from "@/utils/dateFormatters";
 
 /* ─── helpers ────────────────────────────────────────── */
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function getAllDaysOfYear(year: number): Date[] {
+  const days: Date[] = [];
+  const start = new Date(year, 0, 1);
+  const end = new Date(year, 11, 31);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    days.push(new Date(d));
+  }
+  return days;
+}
+
+function toDateKey(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+/* ─── helpers ────────────────────────────────────────── */
 function generatePassword() {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$";
   return Array.from({ length: 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
@@ -46,43 +67,290 @@ const EMPTY_CREATE = {
 };
 const EMPTY_EDIT = { userId: "", groupId: "", dob: "" };
 
-/* ─── Student Detail Tabs ────────────────────────────── */
-function StudentDetailView({ student, groupMap }: { student: any; groupMap: Record<string, string> }) {
-  const [attStartDate, setAttStartDate] = useState("");
-  const [attEndDate, setAttEndDate] = useState("");
+/* ─── Attendance Calendar ────────────────────────────── */
+function AttendanceCalendar({ userId }: { userId: string }) {
+  const currentYear = new Date().getFullYear();
+  const [selectedDate, setSelectedDate] = useState("");
+  const [expandedMonth, setExpandedMonth] = useState<number | null>(new Date().getMonth());
 
-  /* Fetch full user info if not already in student object */
-  const { data: userData } = useFetch(
-    student?.userId && !student.email ? `/users/${student.userId}` : ""
-  ) as any;
-
-  /* Fetch attendance records for this student (by userId) */
   const { data: attendanceData } = useFetch(
-    student?.userId
-      ? `/attendances?conditions=${JSON.stringify({ userId: student.userId })}&limit=500`
+    userId
+      ? `/attendances?conditions=${JSON.stringify({ userId })}&limit=1000`
       : ""
   ) as any;
   const allAttendances: any[] = attendanceData?.rows || (Array.isArray(attendanceData) ? attendanceData : []);
 
-  /* Client-side date range filter */
-  const attendances = useMemo(() => {
-    if (!attStartDate && !attEndDate) return allAttendances;
-    return allAttendances.filter((a: any) => {
-      const dt = a.dateTime ? new Date(a.dateTime) : null;
-      if (!dt) return false;
-      if (attStartDate && dt < new Date(attStartDate)) return false;
-      if (attEndDate && dt > new Date(attEndDate + "T23:59:59")) return false;
-      return true;
+  /* Build set of present date keys */
+  const presentDates = useMemo(() => {
+    const s = new Set<string>();
+    allAttendances.forEach((a: any) => {
+      if (a.dateTime) s.add(toDateKey(new Date(a.dateTime)));
     });
-  }, [allAttendances, attStartDate, attEndDate]);
+    return s;
+  }, [allAttendances]);
 
-  /* Fetch module marks by studentId (studentDetails.id, not userId) */
-  const { data: marksData } = useFetch(
-    student?.id
-      ? `/module-marks?conditions=${JSON.stringify({ studentId: student.id })}&limit=100`
+  const allDays = useMemo(() => getAllDaysOfYear(currentYear), [currentYear]);
+
+  /* If a date is selected, show just that single day across all months */
+  const daysToShow = selectedDate
+    ? allDays.filter((d) => toDateKey(d) === selectedDate)
+    : allDays;
+
+  /* Group by month */
+  const byMonth: Record<number, Date[]> = {};
+  daysToShow.forEach((d) => {
+    const m = d.getMonth();
+    if (!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push(d);
+  });
+
+  const presentCount = daysToShow.filter((d) => {
+    const key = toDateKey(d);
+    return presentDates.has(key) && d.getDay() !== 6;
+  }).length;
+
+  return (
+    <div className="space-y-3 py-2">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 text-sm">
+          <label className="text-gray-600 font-medium whitespace-nowrap">Select Date:</label>
+          <input
+            type="date"
+            value={selectedDate}
+            min={`${currentYear}-01-01`}
+            max={`${currentYear}-12-31`}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="py-1.5 px-3 border border-gray-200 rounded-md text-sm"
+          />
+        </div>
+        {selectedDate && (
+          <button
+            onClick={() => setSelectedDate("")}
+            className="text-xs text-gray-400 hover:text-gray-600 underline"
+          >
+            Show full year
+          </button>
+        )}
+        <div className="flex items-center gap-2 ml-auto text-xs">
+          <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">Present</span>
+          <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded font-medium">Absent</span>
+          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded font-medium">Holiday</span>
+        </div>
+      </div>
+
+      {selectedDate ? (
+        /* Single day view */
+        <div className="text-sm">
+          {daysToShow.length === 0 ? (
+            <p className="text-gray-500 text-center py-6">Date not in current year.</p>
+          ) : (
+            daysToShow.map((d) => {
+              const key = toDateKey(d);
+              const isSat = d.getDay() === 6;
+              return (
+                <div key={key} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium text-gray-800">
+                    {DAYS[d.getDay()]}, {d.getDate()} {MONTHS[d.getMonth()]} {currentYear}
+                  </span>
+                  {isSat ? (
+                    <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-xs font-medium">Holiday</span>
+                  ) : presentDates.has(key) ? (
+                    <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Present</span>
+                  ) : (
+                    <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs font-medium">Absent</span>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      ) : (
+        /* Full year — grouped by month, collapsible */
+        <div className="space-y-2">
+          <p className="text-xs text-gray-500">{presentCount} days present this year</p>
+          {MONTHS.map((monthName, mIdx) => {
+            const days = byMonth[mIdx] || [];
+            if (!days.length) return null;
+            const isExpanded = expandedMonth === mIdx;
+            const monthPresent = days.filter((d) => presentDates.has(toDateKey(d)) && d.getDay() !== 6).length;
+            const monthTotal = days.filter((d) => d.getDay() !== 6).length;
+            return (
+              <div key={mIdx} className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setExpandedMonth(isExpanded ? null : mIdx)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 text-sm font-medium text-gray-700 transition"
+                >
+                  <span>{monthName} {currentYear}</span>
+                  <span className="text-xs text-gray-500 font-normal">
+                    {monthPresent}/{monthTotal} days present · {isExpanded ? "▲" : "▼"}
+                  </span>
+                </button>
+                {isExpanded && (
+                  <div className="grid grid-cols-7 text-center text-xs p-2 gap-1">
+                    {DAYS.map((d) => (
+                      <div key={d} className="py-1 font-semibold text-gray-400">{d}</div>
+                    ))}
+                    {/* Blank cells before first day */}
+                    {Array.from({ length: days[0].getDay() }).map((_, i) => (
+                      <div key={`blank-${i}`} />
+                    ))}
+                    {days.map((d) => {
+                      const key = toDateKey(d);
+                      const isSat = d.getDay() === 6;
+                      let cls = "rounded py-1 ";
+                      if (isSat) cls += "bg-gray-100 text-gray-400";
+                      else if (presentDates.has(key)) cls += "bg-green-100 text-green-700 font-medium";
+                      else cls += "bg-red-50 text-red-500";
+                      return (
+                        <div key={key} className={cls} title={isSat ? "Holiday" : presentDates.has(key) ? "Present" : "Absent"}>
+                          {d.getDate()}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Student Results Tab ────────────────────────────── */
+function StudentResultsTab({ student }: { student: any }) {
+  const [programId, setProgramId] = useState<string | null>(null);
+  const [selectedExam, setSelectedExam] = useState<any>(null);
+
+  /* Resolve programId via group → batch → program */
+  const { data: groupData } = useFetch(
+    student?.groupId ? `/groups/${student.groupId}` : ""
+  ) as any;
+  const batchId = groupData?.batchId || null;
+
+  const { data: batchData } = useFetch(
+    batchId ? `/batches/${batchId}` : ""
+  ) as any;
+
+  useEffect(() => {
+    if (batchData?.programId) setProgramId(batchData.programId);
+  }, [batchData]);
+
+  /* Fetch exams for the program */
+  const { data: examsData } = useFetch(
+    programId
+      ? `/exams?conditions=${JSON.stringify({ programId })}&limit=100`
       : ""
   ) as any;
-  const marks: any[] = marksData?.rows || (Array.isArray(marksData) ? marksData : []);
+  const exams: any[] = examsData?.rows || (Array.isArray(examsData) ? examsData : []);
+
+  /* Fetch student marks (keyed by examModuleId) */
+  const { data: marksData } = useFetch(
+    student?.id
+      ? `/module-marks?conditions=${JSON.stringify({ studentId: student.id })}&limit=500`
+      : ""
+  ) as any;
+  const allMarks: any[] = marksData?.rows || (Array.isArray(marksData) ? marksData : []);
+  const marksMap: Record<string, any> = Object.fromEntries(allMarks.map((m: any) => [m.examModuleId, m]));
+
+  /* Fetch exam modules for selected exam */
+  const { data: examModulesData } = useFetch(
+    selectedExam?.id
+      ? `/exam-modules?conditions=${JSON.stringify({ examId: selectedExam.id })}&limit=100`
+      : ""
+  ) as any;
+  const examModules: any[] = examModulesData?.rows || (Array.isArray(examModulesData) ? examModulesData : []);
+
+  /* Fetch program modules for name lookup */
+  const { data: programModulesData } = useFetch(
+    programId
+      ? `/modules?conditions=${JSON.stringify({ programId })}&limit=200`
+      : ""
+  ) as any;
+  const programModules: any[] = programModulesData?.rows || (Array.isArray(programModulesData) ? programModulesData : []);
+  const moduleNameMap: Record<string, string> = Object.fromEntries(
+    programModules.map((m: any) => [m.id, `${m.name}${m.code ? ` (${m.code})` : ""}`])
+  );
+
+  if (!programId) {
+    return <p className="text-gray-500 text-sm text-center py-6">Loading student program...</p>;
+  }
+
+  return (
+    <div className="space-y-3 py-2">
+      {exams.length === 0 ? (
+        <p className="text-gray-500 text-sm text-center py-6">No exams found for this program.</p>
+      ) : (
+        <div className="space-y-2">
+          {exams.map((exam: any) => (
+            <button
+              key={exam.id}
+              onClick={() => setSelectedExam(exam)}
+              className="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:border-primary hover:bg-primary-light transition text-sm"
+            >
+              <p className="font-medium text-gray-800">{exam.name}</p>
+              <p className="text-xs text-gray-500 capitalize">{exam.type}</p>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Exam Marks Popup */}
+      <Modal
+        open={!!selectedExam}
+        onCancel={() => setSelectedExam(null)}
+        footer={null}
+        title={selectedExam ? `${selectedExam.name} — Marks` : ""}
+        width={560}
+      >
+        {selectedExam && (
+          <div className="py-2">
+            {examModules.length === 0 ? (
+              <p className="text-gray-500 text-sm text-center py-6">No exam modules configured for this exam.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left py-2 px-3 font-medium">Module</th>
+                    <th className="text-left py-2 px-3 font-medium">Type</th>
+                    <th className="text-center py-2 px-3 font-medium">Obtained</th>
+                    <th className="text-center py-2 px-3 font-medium">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {examModules.map((em: any) => {
+                    const mark = marksMap[em.id];
+                    const obtained = mark?.obtainedMarks ?? 0;
+                    return (
+                      <tr key={em.id} className="border-t">
+                        <td className="py-2 px-3">{moduleNameMap[em.moduleId] || em.moduleId}</td>
+                        <td className="py-2 px-3 capitalize text-gray-500">{em.examType}</td>
+                        <td className="py-2 px-3 text-center font-medium">
+                          <span className={obtained === 0 && !mark ? "text-gray-400" : "text-gray-800"}>
+                            {obtained}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 text-center text-gray-500">{em.totalMarks}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+/* ─── Student Detail Tabs ────────────────────────────── */
+function StudentDetailView({ student, groupMap }: { student: any; groupMap: Record<string, string> }) {
+  /* Fetch full user info if not already in student object */
+  const { data: userData } = useFetch(
+    student?.userId && !student.email ? `/users/${student.userId}` : ""
+  ) as any;
 
   const resolvedUser = student.email ? student : userData;
   const fullName =
@@ -113,100 +381,13 @@ function StudentDetailView({ student, groupMap }: { student: any; groupMap: Reco
         },
         {
           key: "attendance",
-          label: `Attendance (${attendances.length}${allAttendances.length !== attendances.length ? ` of ${allAttendances.length}` : ""})`,
-          children: (
-            <div className="space-y-3 py-2">
-              {/* Date range filter */}
-              <div className="flex items-center gap-3 text-sm flex-wrap">
-                <div className="flex items-center gap-2">
-                  <label className="text-gray-600 font-medium whitespace-nowrap">From:</label>
-                  <input
-                    type="date"
-                    value={attStartDate}
-                    onChange={(e) => setAttStartDate(e.target.value)}
-                    className="py-1.5 px-3 border border-gray-200 rounded-md text-sm"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-gray-600 font-medium whitespace-nowrap">To:</label>
-                  <input
-                    type="date"
-                    value={attEndDate}
-                    onChange={(e) => setAttEndDate(e.target.value)}
-                    className="py-1.5 px-3 border border-gray-200 rounded-md text-sm"
-                  />
-                </div>
-                {(attStartDate || attEndDate) && (
-                  <button
-                    onClick={() => { setAttStartDate(""); setAttEndDate(""); }}
-                    className="text-xs text-gray-400 hover:text-gray-600 underline"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              {attendances.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-6">No attendance records found.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left py-2 px-3 font-medium">#</th>
-                        <th className="text-left py-2 px-3 font-medium">Date & Time</th>
-                        <th className="text-left py-2 px-3 font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {attendances.map((a: any, i: number) => (
-                        <tr key={a.id} className="border-t">
-                          <td className="py-2 px-3 text-gray-500">{i + 1}</td>
-                          <td className="py-2 px-3">{a.dateTime ? formatDate(a.dateTime, "long") : "—"}</td>
-                          <td className="py-2 px-3">
-                            <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs font-medium">Present</span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          ),
+          label: "Attendance",
+          children: <AttendanceCalendar userId={student.userId} />,
         },
         {
           key: "results",
-          label: `Results (${marks.length})`,
-          children: (
-            <div className="space-y-2 py-2">
-              {marks.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-6">No exam results found.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="text-left py-2 px-3 font-medium">Exam Module</th>
-                        <th className="text-left py-2 px-3 font-medium">Marks Obtained</th>
-                        <th className="text-left py-2 px-3 font-medium">Remarks</th>
-                        <th className="text-left py-2 px-3 font-medium">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {marks.map((m: any) => (
-                        <tr key={m.id} className="border-t">
-                          <td className="py-2 px-3 text-gray-600 text-xs">{m.examModuleId || "—"}</td>
-                          <td className="py-2 px-3 font-medium">{m.obtainedMarks ?? "—"}</td>
-                          <td className="py-2 px-3 text-gray-600">{m.remarks || "—"}</td>
-                          <td className="py-2 px-3">{m.createdAt ? formatDate(m.createdAt, "long") : "—"}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          ),
+          label: "Results",
+          children: <StudentResultsTab student={student} />,
         },
       ]}
     />
@@ -253,13 +434,16 @@ export default function StudentsPage() {
 
   const queryGroupIds = selectedGroupId ? [selectedGroupId] : groupIds;
 
-  /* Use /students-with-info to get name+email in the table */
+  /* Use /students-with-info to get name+email in the table.
+     Only build the URL once groups have actually loaded to avoid
+     sending an empty groupIds request that returns a 400. */
   const dataUrl = useMemo(() => {
     if (!queryGroupIds.length) return "";
     if (queryGroupIds.length === 1) {
       return `/students-with-info?groupId=${queryGroupIds[0]}`;
     }
-    return `/students-with-info?${queryGroupIds.map((id) => `groupIds[]=${id}`).join("&")}`;
+    return `/students-with-info?${queryGroupIds.map((id) => `groupIds=${id}`).join("&")}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryGroupIds.join(",")]);
 
   useEffect(() => { setSelectedGroupId(""); }, [selectedProgramId]);

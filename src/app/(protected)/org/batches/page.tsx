@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Table from "@/components/ui/Table";
 import { useOrg } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
@@ -34,7 +35,8 @@ const EMPTY_GROUP_FORM = { name: "", batchId: "", year: "", description: "" };
 
 export default function BatchesPage() {
   const { collegeId, loading: orgLoading } = useOrg();
-  const [selectedProgramId, setSelectedProgramId] = useState("");
+  const searchParams = useSearchParams();
+  const [selectedProgramId, setSelectedProgramId] = useState(searchParams.get("programId") || "");
   const [createOpen, setCreateOpen] = useState(false);
   const [viewItem, setViewItem] = useState<any>(null);
   const [editItem, setEditItem] = useState<any>(null);
@@ -156,13 +158,13 @@ export default function BatchesPage() {
           title="Batches"
           dataApiUrl={dataUrl}
           headers={["Name", "Program", "Year", "Description"]}
-          dataKeys={["name", "programId", "year", "description"]}
-          searchKeys={["name", "year"]}
-          onRowClick={(item) => setViewItem({ ...item, programName: programMap[item.programId] })}
+          dataKeys={["name", "programName", "year", "description"]}
+          searchKeys={["name", "year", "programName"]}
+          onRowClick={(item) => setViewItem(item)}
           onCreateClick={() => setCreateOpen(true)}
           extraFilters={programFilter}
           dataTransformer={(data) =>
-            data.map((item: any) => ({ ...item, programId: programMap[item.programId] || item.programId }))
+            data.map((item: any) => ({ ...item, programName: programMap[item.programId] || item.programId }))
           }
         />
       )}

@@ -12,6 +12,7 @@ import {
   Shield,
   UserCog,
   HeartHandshake,
+  Building2,
 } from "lucide-react";
 
 export const primaryOrgSidebarItems = [
@@ -53,6 +54,12 @@ export const primaryOrgSidebarItems = [
     href: "/org/employees",
   },
   { id: "roles", label: "Role Groups", icon: Shield, href: "/org/roles" },
+  {
+    id: "college-profile",
+    label: "College Profile",
+    icon: Building2,
+    href: "/org/college-profile",
+  },
 ];
 
 export const secondaryOrgSidebarItems = [
