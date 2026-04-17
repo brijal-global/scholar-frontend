@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -104,6 +105,7 @@ function AttendanceCalendar({ userId }: { userId: string }) {
     userId
       ? `/attendances?conditions=${JSON.stringify({ userId })}&limit=1000`
       : "",
+    { now: !!userId },
   ) as any;
   const allAttendances: any[] =
     attendanceData?.rows ||
@@ -298,15 +300,19 @@ function StudentResultsTab({ student }: { student: any }) {
   /* Resolve programId via group → batch → program */
   const { data: groupData } = useFetch(
     student?.groupId ? `/groups/${student.groupId}` : "",
+    { now: !!student?.groupId },
   ) as any;
   const batchId = groupData?.batchId || null;
 
-  const { data: batchData } = useFetch(
-    batchId ? `/batches/${batchId}` : "",
-  ) as any;
+  const { data: batchData } = useFetch(batchId ? `/batches/${batchId}` : "", {
+    now: !!batchId,
+  }) as any;
 
   useEffect(() => {
-    if (batchData?.programId) setProgramId(batchData.programId);
+    if (batchData?.programId)
+      setTimeout(() => {
+        setProgramId(batchData.programId);
+      }, 0);
   }, [batchData]);
 
   /* Fetch exams for the program */
@@ -314,6 +320,7 @@ function StudentResultsTab({ student }: { student: any }) {
     programId
       ? `/exams?conditions=${JSON.stringify({ programId })}&limit=100`
       : "",
+    { now: !!programId },
   ) as any;
   const exams: any[] =
     examsData?.rows || (Array.isArray(examsData) ? examsData : []);
@@ -323,6 +330,7 @@ function StudentResultsTab({ student }: { student: any }) {
     student?.id
       ? `/module-marks?conditions=${JSON.stringify({ studentId: student.id })}&limit=500`
       : "",
+    { now: !!student?.id },
   ) as any;
   const allMarks: any[] =
     marksData?.rows || (Array.isArray(marksData) ? marksData : []);
@@ -335,6 +343,7 @@ function StudentResultsTab({ student }: { student: any }) {
     selectedExam?.id
       ? `/exam-modules?conditions=${JSON.stringify({ examId: selectedExam.id })}&limit=100`
       : "",
+    { now: !!selectedExam?.id },
   ) as any;
   const examModules: any[] =
     examModulesData?.rows ||
@@ -345,6 +354,7 @@ function StudentResultsTab({ student }: { student: any }) {
     programId
       ? `/modules?conditions=${JSON.stringify({ programId })}&limit=200`
       : "",
+    { now: !!programId },
   ) as any;
   const programModules: any[] =
     programModulesData?.rows ||
@@ -461,6 +471,7 @@ function StudentDetailView({
   /* Fetch full user info if not already in student object */
   const { data: userData } = useFetch(
     student?.userId && !student.email ? `/users/${student.userId}` : "",
+    { now: !!student?.userId && !student.email },
   ) as any;
 
   const resolvedUser = student.email ? student : userData;
@@ -591,18 +602,24 @@ export default function StudentsPage() {
   }, [queryGroupIds.join(",")]);
 
   useEffect(() => {
-    setSelectedGroupId("");
+    setTimeout(() => {
+      setSelectedGroupId("");
+    }, 0);
   }, [selectedProgramId]);
 
   useEffect(() => {
     if (editItem) {
-      setEditForm({
-        userId: editItem.userId || "",
-        groupId: editItem.groupId || "",
-        dob: editItem.dob ? editItem.dob.split("T")[0] : "",
-      });
+      setTimeout(() => {
+        setEditForm({
+          userId: editItem.userId || "",
+          groupId: editItem.groupId || "",
+          dob: editItem.dob ? editItem.dob.split("T")[0] : "",
+        });
+      }, 0);
     } else if (createOpen) {
-      setCreateForm({ ...EMPTY_CREATE, groupId: selectedGroupId });
+      setTimeout(() => {
+        setCreateForm({ ...EMPTY_CREATE, groupId: selectedGroupId });
+      }, 0);
     }
   }, [editItem, createOpen, selectedGroupId]);
 

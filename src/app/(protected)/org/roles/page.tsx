@@ -71,12 +71,9 @@ export default function RoleGroupsPage() {
     roleGroupsData?.rows ||
     (Array.isArray(roleGroupsData) ? roleGroupsData : []);
 
-  const { data: planModulesData } = useFetch(
-    "/plan-modules?limit=100000000000",
-    {
-      now: true,
-    },
-  ) as any;
+  const { data: planModulesData } = useFetch("/plan-modules?limit=999999", {
+    now: true,
+  }) as any;
   const planModules: PlanModule[] = Array.isArray(planModulesData)
     ? planModulesData
     : (planModulesData?.rows ?? []);
@@ -84,7 +81,7 @@ export default function RoleGroupsPage() {
   /* Load existing permissions when a role group is opened for editing */
   const { data: existingPermsData, refetch: refetchPerms } = useFetch(
     permTarget?.id
-      ? `/college-custom-role-permissions?roleGroupId=${permTarget.id}&limit=1000000000`
+      ? `/college-custom-role-permissions?roleGroupId=${permTarget.id}&limit=999999`
       : "",
     { now: !!permTarget?.id },
   ) as any;
