@@ -1,16 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import useFetch from "@/hooks/useFetch";
-import {
-  School,
-  Users,
-  MessageSquare,
-  BookOpen,
-  CreditCard,
-  Package,
-  Plus,
-  ArrowRight,
-} from "lucide-react";
+import { School, MessageSquare, Plus, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import Loader from "@/components/ui/Loader";
 
@@ -22,78 +14,32 @@ const statConfig = [
     bg: "bg-blue-50",
   },
   {
-    label: "Total Users",
-    icon: Users,
-    color: "text-green-600",
-    bg: "bg-green-50",
-  },
-  {
     label: "Active Inquiries",
     icon: MessageSquare,
     color: "text-orange-600",
     bg: "bg-orange-50",
   },
-  {
-    label: "Programs",
-    icon: BookOpen,
-    color: "text-purple-600",
-    bg: "bg-purple-50",
-  },
-  {
-    label: "Subscriptions",
-    icon: CreditCard,
-    color: "text-pink-600",
-    bg: "bg-pink-50",
-  },
-  {
-    label: "Plan Modules",
-    icon: Package,
-    color: "text-indigo-600",
-    bg: "bg-indigo-50",
-  },
 ];
 
 const quickActions = [
   { label: "Create College", href: "/scholar/colleges/new", icon: Plus },
-  { label: "Create User", href: "/scholar/users/new", icon: Plus },
   { label: "View Inquiries", href: "/scholar/inquiries", icon: ArrowRight },
-  { label: "Manage Roles", href: "/scholar/roles", icon: ArrowRight },
 ];
 
 const Dashboard = () => {
   const { response: collegesRes, loading: collegesLoading } = useFetch(
-    "/colleges?fields=id&limit=1"
-  ) as any;
-  const { response: usersRes, loading: usersLoading } = useFetch(
-    "/users?fields=id&limit=1"
-  ) as any;
-  const { response: inquiriesRes, loading: inquiriesLoading } = useFetch(
-    "/inquiries?fields=id&limit=1"
-  ) as any;
-  const { response: programsRes, loading: programsLoading } = useFetch(
-    "/programs?fields=id&limit=1"
-  ) as any;
-  const { response: subscriptionsRes, loading: subscriptionsLoading } =
-    useFetch("/subscriptions?fields=id&limit=1") as any;
-  const { response: planModulesRes, loading: planModulesLoading } = useFetch(
-    "/plan-modules?fields=id&limit=1"
+    "/colleges?fields=id&limit=1",
   ) as any;
 
-  const isLoading =
-    collegesLoading ||
-    usersLoading ||
-    inquiriesLoading ||
-    programsLoading ||
-    subscriptionsLoading ||
-    planModulesLoading;
+  const { response: inquiriesRes, loading: inquiriesLoading } = useFetch(
+    "/inquiries?fields=id&limit=1",
+  ) as any;
+
+  const isLoading = collegesLoading || inquiriesLoading;
 
   const counts = [
     collegesRes?.pagination?.totalCount ?? 0,
-    usersRes?.pagination?.totalCount ?? 0,
     inquiriesRes?.pagination?.totalCount ?? 0,
-    programsRes?.pagination?.totalCount ?? 0,
-    subscriptionsRes?.pagination?.totalCount ?? 0,
-    planModulesRes?.pagination?.totalCount ?? 0,
   ];
 
   if (isLoading) return <Loader />;

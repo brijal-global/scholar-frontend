@@ -11,10 +11,7 @@ import { Drawer } from "antd";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrg } from "@/contexts/OrgContext";
 import LogoutModal from "@/components/modals/LogoutModal";
-import {
-  primaryOrgSidebarItems,
-  secondaryOrgSidebarItems,
-} from "@/components/org/common/items";
+import { primaryOrgSidebarItems } from "@/components/org/common/items";
 import { footerLinks } from "@/data/contact";
 
 function OrgDesktopSidebar({ pathname }: { pathname: string }) {
@@ -54,33 +51,6 @@ function OrgDesktopSidebar({ pathname }: { pathname: string }) {
       </div>
 
       <div className="flex flex-col space-y-2 mt-7">
-        {secondaryOrgSidebarItems.map((item) => (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm ${
-              pathname.startsWith(item.href)
-                ? "bg-primary-light text-primary font-medium"
-                : "text-[#838383] hover:bg-primary-light hover:text-primary"
-            }`}
-          >
-            {item.icon && <item.icon className="w-5 h-5" />}
-            {item.label}
-          </Link>
-        ))}
-
-        <Link
-          href="/org/profile"
-          className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm ${
-            pathname.startsWith("/org/profile")
-              ? "bg-primary-light text-primary font-medium"
-              : "text-[#838383] hover:bg-primary-light hover:text-primary"
-          }`}
-        >
-          <Settings className="w-5 h-5" />
-          Profile & Settings
-        </Link>
-
         <Link
           href={"#"}
           onClick={() => setIsLogoutModalOpen(true)}
@@ -156,21 +126,6 @@ function OrgMobileSidebar({ pathname }: { pathname: string }) {
           </div>
 
           <div className="flex flex-col space-y-2 mt-7">
-            {secondaryOrgSidebarItems.map((item) => (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all! text-sm ${
-                  pathname.includes(item.href)
-                    ? "bg-white! text-primary! font-medium hover:text-primary-dark"
-                    : "text-[#838383]! hover:bg-white! hover:text-primary!"
-                }`}
-              >
-                {item.icon && <item.icon className="w-5 h-5" />}
-                {item.label}
-              </Link>
-            ))}
-
             <Link
               href="/auth"
               className="flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all! text-sm text-[#838383]! hover:bg-red-100! hover:text-red-500!"
@@ -190,7 +145,7 @@ function OrgNavbar({ pathname }: { pathname: string }) {
   const userRef = useRef<HTMLDivElement>(null);
   const { userData } = useAuth();
 
-  const allItems = [...primaryOrgSidebarItems, ...secondaryOrgSidebarItems];
+  const allItems = primaryOrgSidebarItems;
   const title = pathname.startsWith("/org/profile")
     ? "Profile & Settings"
     : allItems.find((item) => pathname.includes(item.href))?.label || "";
@@ -232,11 +187,7 @@ function OrgNavbar({ pathname }: { pathname: string }) {
             </p>
           </div>
           <hr className="text-[#E1E1E1]" />
-          <Link href="/org/profile">Profile</Link>
-          <hr className="text-[#E1E1E1]" />
-          <Link href="/auth/sign-out" className="text-[#FF8787]">
-            Logout
-          </Link>
+          <Link href="/org/profile">Edit Profile</Link>
         </div>
       )}
     </header>

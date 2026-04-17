@@ -61,12 +61,3 @@ export const primaryOrgSidebarItems = [
     href: "/org/college-profile",
   },
 ];
-
-export const secondaryOrgSidebarItems = [
-  {
-    id: "support",
-    label: "Help & Support",
-    icon: HeartHandshake,
-    href: "/org/support",
-  },
-];
