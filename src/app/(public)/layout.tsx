@@ -81,7 +81,7 @@ export default function PublicLayout({
               </Link>
               <p className="text-sm leading-relaxed text-gray-400">
                 Your partner for managing educational institutions. Built by
-                Fleebug Inc. to help colleges streamline programs, courses,
+                Brijal Maharjan. to help colleges streamline programs, courses,
                 students, and more.
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function PublicLayout({
 
           <div className="border-t border-gray-800 mt-10 pt-6 text-center">
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} Scholar by Fleebug Inc. All
+              &copy; {new Date().getFullYear()} Scholar by Brijal Maharjan. All
               rights reserved.
             </p>
           </div>

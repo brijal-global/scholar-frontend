@@ -70,9 +70,7 @@ const AboutPage = () => {
       {/* Hero */}
       <section className="bg-linear-to-br from-primary to-primary-dark text-white py-20 md:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            About Scholar
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">About Scholar</h1>
           <p className="text-lg text-blue-100 max-w-2xl mx-auto leading-relaxed">
             Empowering educational institutions with the tools they need to
             deliver better outcomes for students and educators alike.
@@ -178,10 +176,8 @@ const AboutPage = () => {
             Meet Our Team
           </h2>
           <p className="text-gray-500 leading-relaxed">
-            Scholar is built by a passionate team at Fleebug Inc. — engineers,
-            designers, and educators who understand the challenges of running an
-            institution. We&apos;re committed to building software that truly
-            makes a difference.
+            Scholar is built by Brijal Maharjan. — a software engineer who
+            understands the challenges of running an institution.
           </p>
         </div>
       </section>

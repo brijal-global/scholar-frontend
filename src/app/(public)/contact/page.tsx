@@ -213,7 +213,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">Phone</p>
-                    <p className="text-sm text-gray-500">+1 (555) 000-0000</p>
+                    <p className="text-sm text-gray-500">+977 9800000000</p>
                   </div>
                 </div>
 
@@ -224,11 +224,9 @@ const ContactPage = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-900">Address</p>
                     <p className="text-sm text-gray-500">
-                      Fleebug Inc.
+                      Brijal Maharjan.
                       <br />
-                      123 Tech Avenue, Suite 100
-                      <br />
-                      San Francisco, CA 94105
+                      Kathmandu, Nepal
                     </p>
                   </div>
                 </div>
