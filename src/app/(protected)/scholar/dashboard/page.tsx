@@ -29,10 +29,12 @@ const quickActions = [
 const Dashboard = () => {
   const { response: collegesRes, loading: collegesLoading } = useFetch(
     "/colleges?fields=id&limit=1",
+    { showErrorToast: false },
   ) as any;
 
   const { response: inquiriesRes, loading: inquiriesLoading } = useFetch(
     "/inquiries?fields=id&limit=1",
+    { showErrorToast: false },
   ) as any;
 
   const isLoading = collegesLoading || inquiriesLoading;
