@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -61,19 +62,26 @@ export default function CollegeProfilePage() {
 
   useEffect(() => {
     if (collegeData) {
-      setForm({
-        name: collegeData.name || "",
-        type: (collegeData as any).type || (collegeData as any).collegeType || "private",
-        country: (collegeData as any).country || "",
-        city: (collegeData as any).city || "",
-        streetAddress: (collegeData as any).streetAddress || "",
-        description: (collegeData as any).description || "",
-      });
+      setTimeout(() => {
+        setForm({
+          name: collegeData.name || "",
+          type:
+            (collegeData as any).type ||
+            (collegeData as any).collegeType ||
+            "private",
+          country: (collegeData as any).country || "",
+          city: (collegeData as any).city || "",
+          streetAddress: (collegeData as any).streetAddress || "",
+          description: (collegeData as any).description || "",
+        });
+      }, 0);
     }
   }, [collegeData]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSave = async (e: React.FormEvent) => {
@@ -166,17 +174,6 @@ export default function CollegeProfilePage() {
                 onChange={handleChange}
                 className={inputCls}
                 placeholder="Street address"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className={labelCls}>Description</label>
-              <textarea
-                name="description"
-                value={form.description}
-                onChange={handleChange}
-                className={`${inputCls} resize-none`}
-                rows={4}
-                placeholder="About your college"
               />
             </div>
           </div>

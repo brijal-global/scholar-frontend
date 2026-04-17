@@ -36,7 +36,7 @@ const PERM_COLS = [
   { key: "canView", label: "View" },
   { key: "canCreate", label: "Create" },
   { key: "canEdit", label: "Edit" },
-  { key: "canDelete", label: "Delete" },
+  // { key: "canDelete", label: "Delete" },
 ] as const;
 
 function validate(f: typeof EMPTY_FORM) {
@@ -71,9 +71,12 @@ export default function RoleGroupsPage() {
     roleGroupsData?.rows ||
     (Array.isArray(roleGroupsData) ? roleGroupsData : []);
 
-  const { data: planModulesData } = useFetch("/plan-modules?limit=100", {
-    now: true,
-  }) as any;
+  const { data: planModulesData } = useFetch(
+    "/plan-modules?limit=100000000000",
+    {
+      now: true,
+    },
+  ) as any;
   const planModules: PlanModule[] = Array.isArray(planModulesData)
     ? planModulesData
     : (planModulesData?.rows ?? []);
@@ -81,7 +84,7 @@ export default function RoleGroupsPage() {
   /* Load existing permissions when a role group is opened for editing */
   const { data: existingPermsData, refetch: refetchPerms } = useFetch(
     permTarget?.id
-      ? `/college-custom-role-permissions?roleGroupId=${permTarget.id}&limit=1000`
+      ? `/college-custom-role-permissions?roleGroupId=${permTarget.id}&limit=1000000000`
       : "",
     { now: !!permTarget?.id },
   ) as any;
@@ -101,18 +104,24 @@ export default function RoleGroupsPage() {
       canEdit: existingMap[pm.id]?.canEdit ?? false,
       canDelete: existingMap[pm.id]?.canDelete ?? false,
     }));
-    setPermRows(rows);
+    setTimeout(() => {
+      setPermRows(rows);
+    }, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [existingPermsData, permTarget?.id]);
 
   useEffect(() => {
     if (editItem) {
-      setFormData({
-        name: editItem.name,
-        description: editItem.description || "",
-      });
+      setTimeout(() => {
+        setFormData({
+          name: editItem.name,
+          description: editItem.description || "",
+        });
+      }, 0);
     } else if (createOpen) {
-      setFormData(EMPTY_FORM);
+      setTimeout(() => {
+        setFormData(EMPTY_FORM);
+      }, 0);
     }
   }, [editItem, createOpen]);
 
@@ -196,45 +205,45 @@ export default function RoleGroupsPage() {
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {roleGroups.map((rg) => (
-            <div
-              key={rg.id}
-              className="bg-white border border-gray-200 rounded-xl p-5 space-y-3 hover:shadow-sm transition"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <Shield size={18} className="text-primary" />
-                  <span className="font-medium text-gray-800">{rg.name}</span>
+          {roleGroups.map(
+            (rg) =>
+              !rg.isAdmin && (
+                <div
+                  key={rg.id}
+                  className="bg-white border border-gray-200 rounded-xl p-5 space-y-3 hover:shadow-sm transition"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      <Shield size={18} className="text-primary" />
+                      <span className="font-medium text-gray-800">
+                        {rg.name}
+                      </span>
+                    </div>
+                  </div>
+                  {rg.description && (
+                    <p className="text-xs text-gray-500">{rg.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 pt-1">
+                    {canEdit && (
+                      <button
+                        onClick={() => setPermTarget(rg)}
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <Settings size={13} /> Manage Permissions
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button
+                        onClick={() => setEditItem(rg)}
+                        className="text-xs text-gray-500 hover:text-gray-700 hover:underline ml-auto"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {rg.isAdmin && (
-                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full font-medium flex items-center gap-1">
-                    <CheckCircle2 size={12} /> Full Access
-                  </span>
-                )}
-              </div>
-              {rg.description && (
-                <p className="text-xs text-gray-500">{rg.description}</p>
-              )}
-              <div className="flex items-center gap-2 pt-1">
-                {!rg.isAdmin && canEdit && (
-                  <button
-                    onClick={() => setPermTarget(rg)}
-                    className="flex items-center gap-1 text-xs text-primary hover:underline"
-                  >
-                    <Settings size={13} /> Manage Permissions
-                  </button>
-                )}
-                {canEdit && (
-                  <button
-                    onClick={() => setEditItem(rg)}
-                    className="text-xs text-gray-500 hover:text-gray-700 hover:underline ml-auto"
-                  >
-                    Edit
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+              ),
+          )}
         </div>
       )}
 
