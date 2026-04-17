@@ -71,6 +71,7 @@ function OrgDesktopSidebar({ pathname }: { pathname: string }) {
 
 function OrgMobileSidebar({ pathname }: { pathname: string }) {
   const [open, setOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const { collegeName, permissions, isAdmin, permissionsLoaded } = useOrg();
 
   const visibleItems = primaryOrgSidebarItems.filter((item) => {
@@ -127,13 +128,19 @@ function OrgMobileSidebar({ pathname }: { pathname: string }) {
 
           <div className="flex flex-col space-y-2 mt-7">
             <Link
-              href="/auth"
+              href={"#"}
+              onClick={() => setIsLogoutModalOpen(true)}
               className="flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all! text-sm text-[#838383]! hover:bg-red-100! hover:text-red-500!"
             >
               <LogOut className="w-5 h-5" />
               Logout
             </Link>
           </div>
+
+          <LogoutModal
+            isOpen={isLogoutModalOpen}
+            closeModal={() => setIsLogoutModalOpen(false)}
+          />
         </div>
       </Drawer>
     </aside>

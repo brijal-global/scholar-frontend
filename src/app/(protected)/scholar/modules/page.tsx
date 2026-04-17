@@ -12,7 +12,7 @@ export default function PlanModules() {
       <Table
         title="Plan Modules"
         dataApiUrl="/plan-modules?fields=id,name,code,monthlyPrice,offerName,offerMonthlyPrice,isActive,createdAt"
-        createLink="/scholar/modules/new"
+        // createLink="/scholar/modules/new"
         headers={[
           "Name",
           "Code",

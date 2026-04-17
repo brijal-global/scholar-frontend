@@ -5,10 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
-import { useRouter } from "next/navigation";
 
 const SignInForm = () => {
-  const router = useRouter();
   const { signIn } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +20,7 @@ const SignInForm = () => {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

@@ -87,7 +87,7 @@ const Table = ({
   }page=${page}&limit=${limit}`;
 
   const { data, response, loading, reloading, refetch, error } = useFetch(
-    dataApiUrlWithPagination
+    dataApiUrlWithPagination,
   ) as any;
   const [searchTerm, setSearchTerm] = useState("") as any;
   const [filteredData, setFilteredData] = useState(data) as any;
@@ -96,7 +96,9 @@ const Table = ({
   const editApiBaseUrl = dataApiUrl?.split("?")[0];
 
   useEffect(() => {
-    setPage(1);
+    setTimeout(() => {
+      setPage(1);
+    }, 0);
   }, [searchTerm]);
 
   useEffect(() => {
@@ -107,9 +109,9 @@ const Table = ({
         setFilteredData(
           transformedData?.filter((item: any) =>
             searchKeys?.some((key: string) =>
-              item?.[key]?.toLowerCase()?.includes(searchTerm?.toLowerCase())
-            )
-          ) || []
+              item?.[key]?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
+            ),
+          ) || [],
         );
       }, 0);
     }
@@ -188,9 +190,7 @@ const Table = ({
     return obj?.[keyPath];
   };
 
-  const showingFrom = pagination
-    ? (page - 1) * limit + 1
-    : 0;
+  const showingFrom = pagination ? (page - 1) * limit + 1 : 0;
   const showingTo = pagination
     ? Math.min(page * limit, pagination.totalCount)
     : 0;
@@ -209,7 +209,9 @@ const Table = ({
             />
           )}
         </div>
-        {extraFilters && <div className="flex items-center gap-2">{extraFilters}</div>}
+        {extraFilters && (
+          <div className="flex items-center gap-2">{extraFilters}</div>
+        )}
         <input
           type="text"
           placeholder="Search"
@@ -309,7 +311,10 @@ const Table = ({
 
                         if (keyIndex === 0 && viewLink) {
                           return (
-                            <Link href={viewLink(item?.id)} className="text-primary hover:underline font-medium">
+                            <Link
+                              href={viewLink(item?.id)}
+                              className="text-primary hover:underline font-medium"
+                            >
                               {value || "N/A"}
                             </Link>
                           );
@@ -382,13 +387,10 @@ const Table = ({
                   {p}
                 </button>
               ) : (
-                <span
-                  key={i}
-                  className="px-2 py-1.5 text-sm text-gray-400"
-                >
+                <span key={i} className="px-2 py-1.5 text-sm text-gray-400">
                   &hellip;
                 </span>
-              )
+              ),
             )}
 
             <button

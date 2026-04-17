@@ -37,7 +37,7 @@ const EditCollegePage = ({ collegeId }: { collegeId: string }) => {
         toast.error(
           `The selected file is too large. Please select a file smaller than ${
             maxSize / 1024 / 1024
-          } MB.`
+          } MB.`,
         );
         e.target.value = "";
         return;
@@ -208,20 +208,6 @@ const EditCollegePage = ({ collegeId }: { collegeId: string }) => {
           {data?.coverImage && (
             <p className="text-xs text-gray-500">Current: {data.coverImage}</p>
           )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-base">Attendance Setting</label>
-          <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition w-fit">
-            <input
-              type="checkbox"
-              name="isAttendanceClassBased"
-              checked={formData.isAttendanceClassBased}
-              onChange={handleChange}
-              className="w-5 h-5 text-primary accent-primary cursor-pointer"
-            />
-            <span className="text-sm font-medium">Class-based Attendance</span>
-          </label>
         </div>
       </div>
 

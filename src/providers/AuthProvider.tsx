@@ -33,6 +33,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       const res = await fetchApi(authEndpoints.signIn, {
         method: "POST",
         body: data,
+        showErrorToast: false,
       });
       if (res?.success) {
         setSignedInStatus(true);
