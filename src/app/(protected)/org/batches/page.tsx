@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal } from "antd";
@@ -35,6 +35,7 @@ const EMPTY_GROUP_FORM = { name: "", batchId: "", year: "", description: "" };
 
 export default function BatchesPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("batches");
   const searchParams = useSearchParams();
   const [selectedProgramId, setSelectedProgramId] = useState(searchParams.get("programId") || "");
   const [createOpen, setCreateOpen] = useState(false);
@@ -161,7 +162,7 @@ export default function BatchesPage() {
           dataKeys={["name", "programName", "year", "description"]}
           searchKeys={["name", "year", "programName"]}
           onRowClick={(item) => setViewItem(item)}
-          onCreateClick={() => setCreateOpen(true)}
+          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
           extraFilters={programFilter}
           dataTransformer={(data) =>
             data.map((item: any) => ({ ...item, programName: programMap[item.programId] || item.programId }))
@@ -178,11 +179,13 @@ export default function BatchesPage() {
             className="border border-gray-300 text-gray-600 text-sm py-2 px-4 rounded-md hover:bg-gray-50 transition mr-2">
             + Create Group
           </button>,
-          <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Batch Details"
         width={540}
       >

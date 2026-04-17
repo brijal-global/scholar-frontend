@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import Loader from "@/components/ui/Loader";
 import { Modal } from "antd";
 import fetchApi from "@/lib/axios";
@@ -41,6 +41,7 @@ const LEVELS = [
 export default function ProgramsPage() {
   const router = useRouter();
   const { collegeId, loading } = useOrg();
+  const { canCreate, canEdit } = usePermission("programs");
   const [createOpen, setCreateOpen] = useState(false);
   const [viewItem, setViewItem] = useState<any>(null);
   const [editItem, setEditItem] = useState<any>(null);
@@ -110,7 +111,7 @@ export default function ProgramsPage() {
         dataKeys={["name", "code", "level", "universityName", "totalCredits"]}
         searchKeys={["name", "code", "universityName"]}
         onRowClick={(item) => setViewItem(item)}
-        onCreateClick={() => setCreateOpen(true)}
+        onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
       />
 
       {/* View Modal */}
@@ -132,11 +133,13 @@ export default function ProgramsPage() {
             className="border border-gray-300 text-gray-600 text-sm py-2 px-4 rounded-md hover:bg-gray-50 transition mr-2">
             + Add Module
           </button>,
-          <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Program Details"
         width={600}
       >

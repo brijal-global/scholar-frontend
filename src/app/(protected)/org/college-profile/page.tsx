@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import fetchApi from "@/lib/axios";
 import { toast } from "react-toastify";
 import Loader from "@/components/ui/Loader";
@@ -48,6 +48,7 @@ function Section({
 
 export default function CollegeProfilePage() {
   const { collegeId, collegeData, refetch: refetchOrg } = useOrg();
+  const { canEdit } = usePermission("college-profile");
   const [form, setForm] = useState<CollegeForm>({
     name: "",
     type: "private",
@@ -179,15 +180,17 @@ export default function CollegeProfilePage() {
               />
             </div>
           </div>
-          <div className="mt-5 flex justify-end">
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-primary text-white text-sm py-2.5 px-6 rounded-lg hover:bg-primary-dark transition disabled:opacity-60"
-            >
-              {saving ? "Saving..." : "Update College Profile"}
-            </button>
-          </div>
+          {canEdit && (
+            <div className="mt-5 flex justify-end">
+              <button
+                type="submit"
+                disabled={saving}
+                className="bg-primary text-white text-sm py-2.5 px-6 rounded-lg hover:bg-primary-dark transition disabled:opacity-60"
+              >
+                {saving ? "Saving..." : "Update College Profile"}
+              </button>
+            </div>
+          )}
         </form>
       </Section>
     </div>

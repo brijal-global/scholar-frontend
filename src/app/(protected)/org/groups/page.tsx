@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal } from "antd";
@@ -23,6 +23,7 @@ const EMPTY_FORM = { name: "", batchId: "", year: "", description: "" };
 
 export default function GroupsPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("groups");
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedBatchId, setSelectedBatchId] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -142,7 +143,7 @@ export default function GroupsPage() {
           dataKeys={["name", "batchName", "year", "description"]}
           searchKeys={["name", "batchName"]}
           onRowClick={(item) => setViewItem(item)}
-          onCreateClick={() => setCreateOpen(true)}
+          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
           extraFilters={filters}
           dataTransformer={(data) =>
             data.map((item: any) => ({ ...item, batchName: batchMap[item.batchId] || item.batchId }))
@@ -163,11 +164,13 @@ export default function GroupsPage() {
         open={!!viewItem}
         onCancel={() => setViewItem(null)}
         footer={[
-          <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Group Details"
         width={500}
       >

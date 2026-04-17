@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal } from "antd";
@@ -50,6 +50,7 @@ function validateEdit(f: typeof EMPTY_EDIT_FORM) {
 
 export default function EmployeesPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("employees");
   const [createOpen, setCreateOpen] = useState(false);
   const [viewItem, setViewItem] = useState<any>(null);
   const [editItem, setEditItem] = useState<any>(null);
@@ -190,7 +191,7 @@ export default function EmployeesPage() {
           dataKeys={["name", "email", "designation", "roleGroupName"]}
           searchKeys={["name", "email", "designation", "roleGroupName"]}
           onRowClick={(item) => setViewItem(item)}
-          onCreateClick={() => setCreateOpen(true)}
+          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
         />
       )}
 
@@ -199,17 +200,19 @@ export default function EmployeesPage() {
         open={!!viewItem}
         onCancel={() => setViewItem(null)}
         footer={[
-          <button
-            key="edit"
-            onClick={() => {
-              setEditItem(viewItem);
-              setViewItem(null);
-            }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
-          >
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button
+              key="edit"
+              onClick={() => {
+                setEditItem(viewItem);
+                setViewItem(null);
+              }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
+            >
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Employee Details"
         width={520}
       >

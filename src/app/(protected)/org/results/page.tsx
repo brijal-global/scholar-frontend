@@ -4,7 +4,7 @@
 import { useState, useCallback } from "react";
 import fetchApi from "@/lib/axios";
 import useFetch from "@/hooks/useFetch";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import Loader from "@/components/ui/Loader";
 import { toast } from "react-toastify";
 
@@ -37,6 +37,7 @@ interface ResultsData {
 
 export default function ResultsPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canEdit } = usePermission("results");
   const [selectedExamId, setSelectedExamId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [resultsData, setResultsData] = useState<ResultsData | null>(null);
@@ -328,13 +329,15 @@ export default function ResultsPage() {
                             {pct}%
                           </span>
                         )}
-                        <button
-                          onClick={() => handleSaveStudent(student)}
-                          disabled={isSaving}
-                          className="bg-primary text-white text-xs py-1.5 px-4 rounded-md hover:bg-primary-dark transition disabled:opacity-60"
-                        >
-                          {isSaving ? "Saving..." : "Save Marks"}
-                        </button>
+                        {canEdit && (
+                          <button
+                            onClick={() => handleSaveStudent(student)}
+                            disabled={isSaving}
+                            className="bg-primary text-white text-xs py-1.5 px-4 rounded-md hover:bg-primary-dark transition disabled:opacity-60"
+                          >
+                            {isSaving ? "Saving..." : "Save Marks"}
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -399,15 +402,18 @@ export default function ResultsPage() {
                                   max={em.totalMarks}
                                   value={currentMarks}
                                   onChange={(e) =>
-                                    handleMarkChange(
-                                      student.studentDetailId,
-                                      em.id,
-                                      "obtainedMarks",
-                                      e.target.value,
-                                      em.totalMarks,
-                                    )
+                                    canEdit
+                                      ? handleMarkChange(
+                                          student.studentDetailId,
+                                          em.id,
+                                          "obtainedMarks",
+                                          e.target.value,
+                                          em.totalMarks,
+                                        )
+                                      : undefined
                                   }
-                                  className="py-1.5 px-3 border border-gray-200 rounded-md w-24 text-sm focus:ring-1 focus:ring-primary focus:border-primary"
+                                  readOnly={!canEdit}
+                                  className={`py-1.5 px-3 border border-gray-200 rounded-md w-24 text-sm focus:ring-1 focus:ring-primary focus:border-primary${!canEdit ? " bg-gray-50 cursor-not-allowed" : ""}`}
                                   placeholder="—"
                                 />
                               </td>
@@ -427,14 +433,17 @@ export default function ResultsPage() {
                                   type="text"
                                   value={currentRemarks}
                                   onChange={(e) =>
-                                    handleMarkChange(
-                                      student.studentDetailId,
-                                      em.id,
-                                      "remarks",
-                                      e.target.value,
-                                    )
+                                    canEdit
+                                      ? handleMarkChange(
+                                          student.studentDetailId,
+                                          em.id,
+                                          "remarks",
+                                          e.target.value,
+                                        )
+                                      : undefined
                                   }
-                                  className="py-1.5 px-3 border border-gray-200 rounded-md w-full text-sm"
+                                  readOnly={!canEdit}
+                                  className={`py-1.5 px-3 border border-gray-200 rounded-md w-full text-sm${!canEdit ? " bg-gray-50 cursor-not-allowed" : ""}`}
                                   placeholder="Optional"
                                 />
                               </td>

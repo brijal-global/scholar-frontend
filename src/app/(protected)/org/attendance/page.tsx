@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import fetchApi from "@/lib/axios";
 import useFetch from "@/hooks/useFetch";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import Loader from "@/components/ui/Loader";
 import { toast } from "react-toastify";
 import { formatDate } from "@/utils/dateFormatters";
@@ -25,6 +25,7 @@ type PresentMap = Record<string, boolean>; // userId → true/false
 
 export default function AttendancePage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canEdit } = usePermission("attendance");
 
   /* ── step 1: program ── */
   const [selectedProgramId, setSelectedProgramId] = useState("");
@@ -337,9 +338,9 @@ export default function AttendancePage() {
                   return (
                     <tr
                       key={student.studentDetailId}
-                      onClick={() => toggleStudent(student.userId)}
-                      className={`border-t cursor-pointer transition-colors select-none ${
-                        isPresent ? "hover:bg-green-50" : "hover:bg-red-50"
+                      onClick={() => canEdit && toggleStudent(student.userId)}
+                      className={`border-t transition-colors select-none ${canEdit ? "cursor-pointer" : "cursor-default"} ${
+                        isPresent ? "hover:bg-green-50" : canEdit ? "hover:bg-red-50" : ""
                       }`}
                     >
                       <td className="py-3 px-4">
@@ -352,12 +353,13 @@ export default function AttendancePage() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <button
-                          onClick={(e) => { e.stopPropagation(); toggleStudent(student.userId); }}
+                          onClick={(e) => { e.stopPropagation(); if (canEdit) toggleStudent(student.userId); }}
+                          disabled={!canEdit}
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                             isPresent
-                              ? "bg-green-100 text-green-700 hover:bg-green-200"
-                              : "bg-red-100 text-red-600 hover:bg-red-200"
-                          }`}
+                              ? "bg-green-100 text-green-700" + (canEdit ? " hover:bg-green-200" : "")
+                              : "bg-red-100 text-red-600" + (canEdit ? " hover:bg-red-200" : "")
+                          }${!canEdit ? " cursor-not-allowed" : ""}`}
                         >
                           {isPresent ? (
                             <><CheckCircle2 size={13} /> Present</>
@@ -380,17 +382,19 @@ export default function AttendancePage() {
             <p className="text-sm text-gray-500">
               {formatDate(selectedDate, "long")} &mdash; {selectedGroup?.name}
             </p>
-            <button
-              onClick={handleSave}
-              disabled={submitting || !hasChanges}
-              className={`flex items-center gap-2 text-sm py-2.5 px-6 rounded-lg font-medium transition ${
-                hasChanges && !submitting
-                  ? "bg-primary text-white hover:bg-primary-dark"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              {submitting ? "Saving…" : hasChanges ? "Save Attendance" : "No Changes"}
-            </button>
+            {canEdit && (
+              <button
+                onClick={handleSave}
+                disabled={submitting || !hasChanges}
+                className={`flex items-center gap-2 text-sm py-2.5 px-6 rounded-lg font-medium transition ${
+                  hasChanges && !submitting
+                    ? "bg-primary text-white hover:bg-primary-dark"
+                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {submitting ? "Saving…" : hasChanges ? "Save Attendance" : "No Changes"}
+              </button>
+            )}
           </div>
         )}
       </div>

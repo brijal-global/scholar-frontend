@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal, Select } from "antd";
@@ -36,6 +36,7 @@ const EMPTY_FORM = {
 
 export default function RemarksPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("remarks");
   const { userData } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
@@ -148,8 +149,8 @@ export default function RemarksPage() {
         headers={["Student", "Remark Type", "Subject", "Message"]}
         dataKeys={["studentName", "remarkType", "subject", "message"]}
         searchKeys={["subject", "remarkType"]}
-        onRowClick={(item) => setViewItem(item)}
-        onCreateClick={() => setCreateOpen(true)}
+          onRowClick={(item) => setViewItem(item)}
+          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
         dataTransformer={(data) =>
           data.map((item: any) => ({
             ...item,
@@ -163,14 +164,16 @@ export default function RemarksPage() {
         open={!!viewItem}
         onCancel={() => setViewItem(null)}
         footer={[
-          <button
-            key="edit"
-            onClick={() => { setEditItem(viewItem); setViewItem(null); }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
-          >
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button
+              key="edit"
+              onClick={() => { setEditItem(viewItem); setViewItem(null); }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
+            >
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Remark Details"
         width={560}
       >

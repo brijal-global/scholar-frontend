@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal } from "antd";
@@ -33,6 +33,7 @@ const EMPTY_FORM = {
 
 export default function ModulesPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("courses");
   const searchParams = useSearchParams();
   const [selectedProgramId, setSelectedProgramId] = useState(searchParams.get("programId") || "");
 
@@ -140,7 +141,7 @@ export default function ModulesPage() {
           dataKeys={["name", "code", "programName", "credits", "description"]}
           searchKeys={["name", "code", "programName"]}
           onRowClick={(item) => setViewItem(item)}
-          onCreateClick={() => setCreateOpen(true)}
+          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
           extraFilters={programFilter}
           dataTransformer={(data) =>
             data.map((item: any) => ({
@@ -156,11 +157,13 @@ export default function ModulesPage() {
         open={!!viewItem}
         onCancel={() => setViewItem(null)}
         footer={[
-          <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button key="edit" onClick={() => { setEditItem(viewItem); setViewItem(null); }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition">
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Module Details"
         width={560}
       >

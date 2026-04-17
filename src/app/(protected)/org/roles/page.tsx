@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal } from "antd";
@@ -49,6 +49,7 @@ const EMPTY_FORM = { name: "", description: "" };
 
 export default function RoleGroupsPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("roles");
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<RoleGroup | null>(null);
   const [formData, setFormData] = useState(EMPTY_FORM);
@@ -179,12 +180,14 @@ export default function RoleGroupsPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-gray-800">Role Groups</h1>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
-        >
-          + Create Role Group
-        </button>
+        {canCreate && (
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
+          >
+            + Create Role Group
+          </button>
+        )}
       </div>
 
       {roleGroups.length === 0 ? (
@@ -213,7 +216,7 @@ export default function RoleGroupsPage() {
                 <p className="text-xs text-gray-500">{rg.description}</p>
               )}
               <div className="flex items-center gap-2 pt-1">
-                {!rg.isAdmin && (
+                {!rg.isAdmin && canEdit && (
                   <button
                     onClick={() => setPermTarget(rg)}
                     className="flex items-center gap-1 text-xs text-primary hover:underline"
@@ -221,12 +224,14 @@ export default function RoleGroupsPage() {
                     <Settings size={13} /> Manage Permissions
                   </button>
                 )}
-                <button
-                  onClick={() => setEditItem(rg)}
-                  className="text-xs text-gray-500 hover:text-gray-700 hover:underline ml-auto"
-                >
-                  Edit
-                </button>
+                {canEdit && (
+                  <button
+                    onClick={() => setEditItem(rg)}
+                    className="text-xs text-gray-500 hover:text-gray-700 hover:underline ml-auto"
+                  >
+                    Edit
+                  </button>
+                )}
               </div>
             </div>
           ))}

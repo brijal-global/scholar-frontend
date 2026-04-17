@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import OrgProvider from "@/providers/OrgProvider";
 import Link from "next/link";
 import Image from "next/image";
@@ -220,6 +220,23 @@ function OrgFooter() {
 
 function OrgLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { permissions, isAdmin, permissionsLoaded } = useOrg();
+
+  /* Redirect to dashboard if user has no canView permission for this page */
+  useEffect(() => {
+    if (!permissionsLoaded || isAdmin) return;
+
+    const matched = primaryOrgSidebarItems.find(
+      (item) => item.id !== "dashboard" && pathname.startsWith(item.href),
+    );
+    if (!matched) return;
+
+    const perm = permissions[matched.id];
+    if (perm && perm.canView === false) {
+      router.replace("/org/dashboard");
+    }
+  }, [pathname, permissions, isAdmin, permissionsLoaded, router]);
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-5 xl:grid-cols-6 h-dvh overflow-hidden">

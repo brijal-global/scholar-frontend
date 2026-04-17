@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Table from "@/components/ui/Table";
-import { useOrg } from "@/contexts/OrgContext";
+import { useOrg, usePermission } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
 import Loader from "@/components/ui/Loader";
 import { Modal, Tabs } from "antd";
@@ -415,6 +415,7 @@ function ExamModulesManager({ exam }: { exam: any }) {
 
 export default function ExamsPage() {
   const { collegeId, loading: orgLoading } = useOrg();
+  const { canCreate, canEdit } = usePermission("exams");
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   /* viewItem always carries the raw programId UUID */
@@ -528,7 +529,7 @@ export default function ExamsPage() {
             }))
           }
           onRowClick={(item) => setViewItem(item)}
-          onCreateClick={() => setCreateOpen(true)}
+          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
           extraFilters={programFilter}
         />
       )}
@@ -538,17 +539,19 @@ export default function ExamsPage() {
         open={!!viewItem}
         onCancel={() => setViewItem(null)}
         footer={[
-          <button
-            key="edit"
-            onClick={() => {
-              setEditItem(viewItem);
-              setViewItem(null);
-            }}
-            className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
-          >
-            Edit
-          </button>,
-        ]}
+          canEdit && (
+            <button
+              key="edit"
+              onClick={() => {
+                setEditItem(viewItem);
+                setViewItem(null);
+              }}
+              className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
+            >
+              Edit
+            </button>
+          ),
+        ].filter(Boolean)}
         title="Exam Details"
         width={740}
       >
