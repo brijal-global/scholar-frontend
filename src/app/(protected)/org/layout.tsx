@@ -5,7 +5,7 @@ import OrgProvider from "@/providers/OrgProvider";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { LogOut, User, Menu } from "lucide-react";
+import { LogOut, User, Menu, Settings } from "lucide-react";
 import { Drawer } from "antd";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrg } from "@/contexts/OrgContext";
@@ -61,6 +61,18 @@ function OrgDesktopSidebar({ pathname }: { pathname: string }) {
             {item.label}
           </Link>
         ))}
+
+        <Link
+          href="/org/profile"
+          className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all text-sm ${
+            pathname.startsWith("/org/profile")
+              ? "bg-primary-light text-primary font-medium"
+              : "text-[#838383] hover:bg-primary-light hover:text-primary"
+          }`}
+        >
+          <Settings className="w-5 h-5" />
+          Profile & Settings
+        </Link>
 
         <Link
           href={"#"}
@@ -166,8 +178,9 @@ function OrgNavbar({ pathname }: { pathname: string }) {
   const { userData } = useAuth();
 
   const allItems = [...primaryOrgSidebarItems, ...secondaryOrgSidebarItems];
-  const title =
-    allItems.find((item) => pathname.includes(item.href))?.label || "";
+  const title = pathname.startsWith("/org/profile")
+    ? "Profile & Settings"
+    : allItems.find((item) => pathname.includes(item.href))?.label || "";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -207,7 +220,6 @@ function OrgNavbar({ pathname }: { pathname: string }) {
           </div>
           <hr className="text-[#E1E1E1]" />
           <Link href="/org/profile">Profile</Link>
-          <Link href="/org/settings">Settings</Link>
           <hr className="text-[#E1E1E1]" />
           <Link href="/auth/sign-out" className="text-[#FF8787]">
             Logout

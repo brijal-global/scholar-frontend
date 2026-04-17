@@ -22,10 +22,17 @@ interface TableProps {
   dataKeys: (string | string[])[];
   searchKeys: string[];
   viewLink?: (identifier: string) => string;
+  onRowClick?: (item: any) => void;
   createLink?: string;
+  onCreateClick?: () => void;
   actions?: any;
   groups?: any;
   dataTransformer?: (data: any[]) => any[];
+  filterOptions?: { label: string; value: string }[];
+  filterKey?: string;
+  filterValue?: string;
+  onFilterChange?: (value: string) => void;
+  extraFilters?: React.ReactNode;
 }
 
 const getPageNumbers = (currentPage: number, totalPages: number) => {
@@ -64,10 +71,13 @@ const Table = ({
   dataKeys,
   searchKeys,
   viewLink,
+  onRowClick,
   createLink,
+  onCreateClick,
   actions = [],
   groups = [],
   dataTransformer,
+  extraFilters,
 }: TableProps) => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -188,7 +198,7 @@ const Table = ({
   return (
     <div className="flex flex-col justify-center items-center gap-4 rounded-lg w-full">
       <div className="w-full flex flex-col md:flex-row md:items-center text-sm gap-2">
-        <div className="md:mr-8 flex items-center gap-3">
+        <div className="md:mr-8 flex items-center gap-3 shrink-0">
           <span className="text-primary-dark text-lg font-semibold ">
             {title}
           </span>
@@ -199,6 +209,7 @@ const Table = ({
             />
           )}
         </div>
+        {extraFilters && <div className="flex items-center gap-2">{extraFilters}</div>}
         <input
           type="text"
           placeholder="Search"
@@ -207,7 +218,10 @@ const Table = ({
           onChange={(e: any) => setSearchTerm(e.target.value)}
         />
         {createLink && (
-          <SecondaryOutlineButton title="Create New" link={createLink} />
+          <SecondaryOutlineButton title="+ Create" link={createLink} />
+        )}
+        {onCreateClick && !createLink && (
+          <SecondaryOutlineButton title="+ Create" onClick={onCreateClick} />
         )}
       </div>
 
@@ -282,9 +296,20 @@ const Table = ({
                       {(() => {
                         const value = getValue(item, key as string);
 
+                        if (keyIndex === 0 && onRowClick) {
+                          return (
+                            <button
+                              onClick={() => onRowClick(item)}
+                              className="text-primary hover:underline text-left cursor-pointer font-medium"
+                            >
+                              {value || "N/A"}
+                            </button>
+                          );
+                        }
+
                         if (keyIndex === 0 && viewLink) {
                           return (
-                            <Link href={viewLink(item?.id)}>
+                            <Link href={viewLink(item?.id)} className="text-primary hover:underline font-medium">
                               {value || "N/A"}
                             </Link>
                           );

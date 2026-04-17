@@ -31,8 +31,18 @@ const SignInForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErr("Please enter a valid email address.");
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      setErr("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
     setSuccess(false);
+    setErr("");
 
     const res = await signIn(formData);
 
