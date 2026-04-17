@@ -6,7 +6,7 @@ import { useMemo, useState, useEffect } from "react";
 import Loader from "./Loader";
 import { Switch } from "antd";
 import fetchApi from "@/lib/axios";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import useFetch from "@/hooks/useFetch";
 
 import Chip from "@/components/ui/Chip";
@@ -22,54 +22,96 @@ interface TableProps {
   dataKeys: (string | string[])[];
   searchKeys: string[];
   viewLink?: (identifier: string) => string;
+  onRowClick?: (item: any) => void;
   createLink?: string;
+  onCreateClick?: () => void;
   actions?: any;
   groups?: any;
   dataTransformer?: (data: any[]) => any[];
+  filterOptions?: { label: string; value: string }[];
+  filterKey?: string;
+  filterValue?: string;
+  onFilterChange?: (value: string) => void;
+  extraFilters?: React.ReactNode;
 }
+
+const getPageNumbers = (currentPage: number, totalPages: number) => {
+  const pages: (number | "ellipsis-start" | "ellipsis-end")[] = [];
+
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+    return pages;
+  }
+
+  pages.push(1);
+
+  if (currentPage > 3) {
+    pages.push("ellipsis-start");
+  }
+
+  const start = Math.max(2, currentPage - 1);
+  const end = Math.min(totalPages - 1, currentPage + 1);
+  for (let i = start; i <= end; i++) pages.push(i);
+
+  if (currentPage < totalPages - 2) {
+    pages.push("ellipsis-end");
+  }
+
+  pages.push(totalPages);
+
+  return pages;
+};
 
 const Table = ({
   title,
   dataApiUrl,
-  showActiveToggle = true,
+  showActiveToggle = false,
   dataUniqueKey = "id",
   headers,
   dataKeys,
   searchKeys,
   viewLink,
+  onRowClick,
   createLink,
+  onCreateClick,
   actions = [],
   groups = [],
   dataTransformer,
+  extraFilters,
 }: TableProps) => {
-  // TODO: Implement pagination
-  const page = 1;
-  const limit = 1000;
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const dataApiUrlWithPagination = `${dataApiUrl}${
     dataApiUrl.includes("?") ? "&" : "?"
   }page=${page}&limit=${limit}`;
 
-  const { data, loading, reloading, refetch, error } = useFetch(
-    dataApiUrlWithPagination
+  const { data, response, loading, reloading, refetch, error } = useFetch(
+    dataApiUrlWithPagination,
   ) as any;
   const [searchTerm, setSearchTerm] = useState("") as any;
   const [filteredData, setFilteredData] = useState(data) as any;
 
+  const pagination = response?.pagination;
   const editApiBaseUrl = dataApiUrl?.split("?")[0];
+
+  useEffect(() => {
+    setTimeout(() => {
+      setPage(1);
+    }, 0);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (data) {
       setTimeout(() => {
-        // Apply data transformer if provided
         const transformedData = dataTransformer ? dataTransformer(data) : data;
 
         setFilteredData(
           transformedData?.filter((item: any) =>
             searchKeys?.some((key: string) =>
-              item?.[key]?.toLowerCase()?.includes(searchTerm?.toLowerCase())
-            )
-          ) || []
+              item?.[key]?.toLowerCase()?.includes(searchTerm?.toLowerCase()),
+            ),
+          ) || [],
         );
       }, 0);
     }
@@ -80,7 +122,6 @@ const Table = ({
   const groupedData = useMemo(() => {
     if (!hasGroups) return null;
 
-    // Initialize all groups with empty arrays first
     const initial = groups.reduce((acc: any, group: any) => {
       acc[group.label] = [];
       return acc;
@@ -88,7 +129,6 @@ const Table = ({
 
     if (!filteredData) return initial;
 
-    // For each item, add it to all groups where it matches the group's criteria
     return filteredData.reduce((acc: any, item: any) => {
       groups.forEach((group: any) => {
         if (group.values.includes(item[group.dataKey])) {
@@ -102,12 +142,10 @@ const Table = ({
   const tabs = groupedData ? Object.keys(groupedData) : [];
   const [selectedTab, setSelectedTab] = useState("");
 
-  // Use selected tab if valid, otherwise default to first tab
   const currentTab = tabs.includes(selectedTab) ? selectedTab : tabs[0] || "";
 
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
-  // Determine the data to display
   const displayData =
     hasGroups && groupedData ? groupedData[currentTab] : filteredData;
   const showTabs = hasGroups && groupedData && tabs.length > 0;
@@ -123,7 +161,6 @@ const Table = ({
     if (res?.success) {
       await refetch();
     } else {
-      // revert the status in ui
       displayData?.forEach((item: any) => {
         if (item[dataUniqueKey] === identifier) {
           item["isActive"] = !active;
@@ -132,7 +169,6 @@ const Table = ({
     }
   };
 
-  // Handle nested keys like ["role", "name"] or simple keys like "name"
   const getValue = (obj: any, keyPath: string | string[]) => {
     if (Array.isArray(keyPath)) {
       return keyPath.reduce((current, key) => current?.[key], obj);
@@ -154,20 +190,28 @@ const Table = ({
     return obj?.[keyPath];
   };
 
+  const showingFrom = pagination ? (page - 1) * limit + 1 : 0;
+  const showingTo = pagination
+    ? Math.min(page * limit, pagination.totalCount)
+    : 0;
+
   return (
     <div className="flex flex-col justify-center items-center gap-4 rounded-lg w-full">
       <div className="w-full flex flex-col md:flex-row md:items-center text-sm gap-2">
-        <div className="md:mr-8 flex items-center gap-3">
+        <div className="md:mr-8 flex items-center gap-3 shrink-0">
           <span className="text-primary-dark text-lg font-semibold ">
             {title}
           </span>
 
           {data?.length > 0 && (
             <Chip
-              text={`${filteredData?.length} ${title?.toLowerCase()} found`}
+              text={`${pagination?.totalCount ?? filteredData?.length} ${title?.toLowerCase()} found`}
             />
           )}
         </div>
+        {extraFilters && (
+          <div className="flex items-center gap-2">{extraFilters}</div>
+        )}
         <input
           type="text"
           placeholder="Search"
@@ -176,7 +220,10 @@ const Table = ({
           onChange={(e: any) => setSearchTerm(e.target.value)}
         />
         {createLink && (
-          <SecondaryOutlineButton title="Create New" link={createLink} />
+          <SecondaryOutlineButton title="+ Create" link={createLink} />
+        )}
+        {onCreateClick && !createLink && (
+          <SecondaryOutlineButton title="+ Create" onClick={onCreateClick} />
         )}
       </div>
 
@@ -251,9 +298,23 @@ const Table = ({
                       {(() => {
                         const value = getValue(item, key as string);
 
+                        if (keyIndex === 0 && onRowClick) {
+                          return (
+                            <button
+                              onClick={() => onRowClick(item)}
+                              className="text-primary hover:underline text-left cursor-pointer font-medium"
+                            >
+                              {value || "N/A"}
+                            </button>
+                          );
+                        }
+
                         if (keyIndex === 0 && viewLink) {
                           return (
-                            <Link href={viewLink(item?.id)}>
+                            <Link
+                              href={viewLink(item?.id)}
+                              className="text-primary hover:underline font-medium"
+                            >
                               {value || "N/A"}
                             </Link>
                           );
@@ -296,6 +357,53 @@ const Table = ({
           </div>
         )}
       </div>
+
+      {pagination && pagination.totalPages > 1 && (
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+          <span className="text-sm text-gray-500">
+            Showing {showingFrom}–{showingTo} of {pagination.totalCount}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              onClick={() => setPage((p: number) => p - 1)}
+              disabled={!pagination.hasPreviousPage}
+            >
+              <ChevronLeft size={14} />
+              Prev
+            </button>
+
+            {getPageNumbers(page, pagination.totalPages).map((p, i) =>
+              typeof p === "number" ? (
+                <button
+                  key={i}
+                  className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all cursor-pointer ${
+                    p === page
+                      ? "bg-gray-800 text-white"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ) : (
+                <span key={i} className="px-2 py-1.5 text-sm text-gray-400">
+                  &hellip;
+                </span>
+              ),
+            )}
+
+            <button
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              onClick={() => setPage((p: number) => p + 1)}
+              disabled={!pagination.hasNextPage}
+            >
+              Next
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

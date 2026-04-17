@@ -5,11 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ViewIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons";
-import OAuthOptions from "./OAuthOptions";
-import { useRouter } from "next/navigation";
 
 const SignInForm = () => {
-  const router = useRouter();
   const { signIn } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -23,7 +20,7 @@ const SignInForm = () => {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -31,19 +28,24 @@ const SignInForm = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErr("Please enter a valid email address.");
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      setErr("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
     setSuccess(false);
+    setErr("");
 
     const res = await signIn(formData);
 
     if (res?.success) {
       setErr("");
       setSuccess(true);
-      if (res?.data?.role !== "organizationEmployee") {
-        router.push("/scholar/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
     } else {
       setErr(res?.message);
     }
@@ -122,15 +124,6 @@ const SignInForm = () => {
             </span>
           </div>
 
-          <div className="flex justify-end items-center text-xs select-none">
-            <Link
-              href="/forgot-password"
-              className="text-primary font-medium hover:underline"
-            >
-              Forgot password?
-            </Link>
-          </div>
-
           <input
             type="submit"
             className="bg-primary hover:bg-primary-dark transition text-white font-semibold py-3 px-4 rounded cursor-pointer text-sm select-none"
@@ -149,8 +142,6 @@ const SignInForm = () => {
             Sign in successful! Redirecting...
           </p>
         )}
-
-        <OAuthOptions />
 
         <div className="flex justify-center items-center gap-x-2 mt-4 select-none">
           <p className="text-sm text-gray-500">

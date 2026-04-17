@@ -42,7 +42,9 @@ export function ProtectedLayoutWrapper({
     if (!pathname || !router) return;
 
     if (signedInStatus === false) {
-      router.replace("/auth/sign-in");
+      if (!pathname?.startsWith("/auth/")) {
+        router.replace("/auth/sign-in");
+      }
       return;
     }
 

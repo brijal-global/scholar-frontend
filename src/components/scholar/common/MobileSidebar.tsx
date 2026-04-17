@@ -6,10 +6,11 @@ import Link from "next/link";
 import { primarySidebarItems, secondarySidebarItems } from "./items";
 import { IoIosMenu } from "react-icons/io";
 import { GraduationCap, LogOut } from "lucide-react";
+import LogoutModal from "@/components/modals/LogoutModal";
 
 const MobileSidebar = ({ pathname }: { pathname: string }) => {
   const [open, setOpen] = useState(false);
-
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const showDrawer = () => {
     setOpen(true);
   };
@@ -84,12 +85,18 @@ const MobileSidebar = ({ pathname }: { pathname: string }) => {
             ))}
 
             <Link
-              href={"/auth"}
+              href={"#"}
+              onClick={() => setIsLogoutModalOpen(true)}
               className={`flex items-center gap-2 py-2.5 px-4 rounded-lg duration-200 transition-all! text-sm text-[#838383]! hover:bg-red-100! hover:text-red-500!`}
             >
               <LogOut className="w-5 h-5" />
               Logout
             </Link>
+
+            <LogoutModal
+              isOpen={isLogoutModalOpen}
+              closeModal={() => setIsLogoutModalOpen(false)}
+            />
           </div>
         </div>
       </Drawer>

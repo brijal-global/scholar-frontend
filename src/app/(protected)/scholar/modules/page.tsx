@@ -3,8 +3,8 @@
 
 import { useState } from "react";
 import Table from "@/components/ui/Table";
-import { PencilIcon } from "@hugeicons/core-free-icons";
-import { TrashIcon } from "lucide-react";
+// import { PencilIcon } from "@hugeicons/core-free-icons";
+// import { TrashIcon } from "lucide-react";
 
 export default function PlanModules() {
   const tabs = {
@@ -12,58 +12,59 @@ export default function PlanModules() {
       <Table
         title="Plan Modules"
         dataApiUrl="/plan-modules?fields=id,name,code,monthlyPrice,offerName,offerMonthlyPrice,isActive,createdAt"
-        createLink="/scholar/modules/new"
+        // createLink="/scholar/modules/new"
         headers={[
           "Name",
           "Code",
-          "Monthly Price",
-          "Offer Name",
-          "Offer Price",
-          "Created",
+          // "Monthly Price",
+          // "Offer Name",
+          // "Offer Price",
+          // "Created",
         ]}
         dataKeys={[
           "name",
           "code",
-          "monthlyPrice",
-          "offerName",
-          "offerMonthlyPrice",
-          "createdAt",
+          // "monthlyPrice",
+          // "offerName",
+          // "offerMonthlyPrice",
+          // "createdAt",
         ]}
         searchKeys={["name", "code", "offerName"]}
         dataUniqueKey="id"
-        groups={[
-          {
-            label: "Active",
-            dataKey: "isActive",
-            values: [true],
-          },
-          {
-            label: "Inactive",
-            dataKey: "isActive",
-            values: [false],
-          },
-          {
-            label: "All",
-            dataKey: "isActive",
-            values: [true, false],
-          },
-        ]}
-        actions={{
-          edit: {
-            label: "Edit",
-            icon: PencilIcon,
-            editLink: (identifier: string) =>
-              `/scholar/modules/${identifier}/edit`,
-            postEditLink: "/scholar/modules",
-          },
-          delete: {
-            label: "Delete module? This action cannot be undone.",
-            description: "Are you sure you want to delete this module?",
-            icon: TrashIcon,
-            deleteApiUrl: (identifier: string) => `/plan-modules/${identifier}`,
-            reloadAfterDelete: true,
-          },
-        }}
+        showActiveToggle={false}
+        // groups={[
+        //   {
+        //     label: "Active",
+        //     dataKey: "isActive",
+        //     values: [true],
+        //   },
+        //   {
+        //     label: "Inactive",
+        //     dataKey: "isActive",
+        //     values: [false],
+        //   },
+        //   {
+        //     label: "All",
+        //     dataKey: "isActive",
+        //     values: [true, false],
+        //   },
+        // ]}
+        // actions={{
+        //   edit: {
+        //     label: "Edit",
+        //     icon: PencilIcon,
+        //     editLink: (identifier: string) =>
+        //       `/scholar/modules/${identifier}/edit`,
+        //     postEditLink: "/scholar/modules",
+        //   },
+        //   delete: {
+        //     label: "Delete module? This action cannot be undone.",
+        //     description: "Are you sure you want to delete this module?",
+        //     icon: TrashIcon,
+        //     deleteApiUrl: (identifier: string) => `/plan-modules/${identifier}`,
+        //     reloadAfterDelete: true,
+        //   },
+        // }}
       />
     ),
   } as any;

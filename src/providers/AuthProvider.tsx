@@ -33,6 +33,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
       const res = await fetchApi(authEndpoints.signIn, {
         method: "POST",
         body: data,
+        showErrorToast: false,
       });
       if (res?.success) {
         setSignedInStatus(true);
@@ -48,7 +49,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     data: userData,
     hitApi: refetch,
     isFinished,
-  } = useFetch(authEndpoints.me) as any;
+  } = useFetch(authEndpoints.me, {
+    showErrorToast: false,
+  }) as any;
 
   useEffect(() => {
     if (isFinished) {

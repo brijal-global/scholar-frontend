@@ -6,9 +6,8 @@ import { Bounce, ToastContainer } from "react-toastify";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
-  title: "Scholar | Your partner for managing the school | By Fleebug Inc.",
-  description:
-    "Scholar | Your partner for managing the school | By Fleebug Inc.",
+  title: "Scholar | AI-Powered Academic Management System",
+  description: "Scholar | AI-Powered Academic Management System",
 };
 
 const poppins = Poppins({
