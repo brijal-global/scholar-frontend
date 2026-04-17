@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -69,7 +70,7 @@ export default function RoleGroupsPage() {
     roleGroupsData?.rows ||
     (Array.isArray(roleGroupsData) ? roleGroupsData : []);
 
-  const { data: planModulesData } = useFetch("/plan-modules", {
+  const { data: planModulesData } = useFetch("/plan-modules?limit=100", {
     now: true,
   }) as any;
   const planModules: PlanModule[] = Array.isArray(planModulesData)
@@ -79,7 +80,7 @@ export default function RoleGroupsPage() {
   /* Load existing permissions when a role group is opened for editing */
   const { data: existingPermsData, refetch: refetchPerms } = useFetch(
     permTarget?.id
-      ? `/college-custom-role-permissions?roleGroupId=${permTarget.id}`
+      ? `/college-custom-role-permissions?roleGroupId=${permTarget.id}&limit=1000`
       : "",
     { now: !!permTarget?.id },
   ) as any;

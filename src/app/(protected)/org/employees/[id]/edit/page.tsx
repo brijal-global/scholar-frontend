@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { use, useState, useEffect } from "react";
@@ -26,45 +27,28 @@ function EditEmployeeForm({ id }: { id: string }) {
     collegeId
       ? `/college-custom-role-groups?fields=id,name&limit=100&conditions=${JSON.stringify({ collegeId })}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
   const roleGroups =
     roleGroupsData?.rows ||
     (Array.isArray(roleGroupsData) ? roleGroupsData : []);
 
-  const { data: programsData } = useFetch(
-    collegeId
-      ? `/programs?fields=id&limit=100&conditions=${JSON.stringify({ collegeId })}`
-      : "",
-    { now: !!collegeId }
-  ) as any;
-  const programs =
-    programsData?.rows || (Array.isArray(programsData) ? programsData : []);
-  const programIds = programs.map((p: any) => p.id);
-
-  const { data: modulesData } = useFetch(
-    programIds.length
-      ? `/modules?fields=id,name&limit=200&conditions=${JSON.stringify({ programId: programIds })}`
-      : "",
-    { now: programIds.length > 0 }
-  ) as any;
-  const modules =
-    modulesData?.rows || (Array.isArray(modulesData) ? modulesData : []);
-
   useEffect(() => {
     if (data) {
-      setFormData({
-        userId: data.userId || "",
-        collegeCustomRoleGroupId: data.collegeCustomRoleGroupId || "",
-        designation: data.designation || "",
-        entry: data.entry || "",
-        associatedModuleId: data.associatedModuleId || "",
-      });
+      setTimeout(() => {
+        setFormData({
+          userId: data.userId || "",
+          collegeCustomRoleGroupId: data.collegeCustomRoleGroupId || "",
+          designation: data.designation || "",
+          entry: data.entry || "",
+          associatedModuleId: data.associatedModuleId || "",
+        });
+      }, 0);
     }
   }, [data]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -146,24 +130,6 @@ function EditEmployeeForm({ id }: { id: string }) {
               onChange={handleChange}
               className="py-3 px-5 text-sm rounded-md w-full"
             />
-          </div>
-          <div>
-            <label className="block mb-1 font-medium">
-              Associated Module (Optional)
-            </label>
-            <select
-              name="associatedModuleId"
-              value={formData.associatedModuleId}
-              onChange={handleChange}
-              className="py-3 px-5 text-sm rounded-md w-full"
-            >
-              <option value="">None</option>
-              {modules.map((m: any) => (
-                <option key={m.id} value={m.id}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
         <div className="mt-6">

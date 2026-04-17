@@ -36,6 +36,7 @@ const NewInquiry = () => {
       method: "POST",
       body: formData,
       showSuccessToast: true,
+      showErrorToast: false,
       successRoute: "/scholar/inquiries",
       errorRoute: "/scholar/inquiries/new",
     });

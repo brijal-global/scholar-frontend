@@ -16,7 +16,7 @@ const ContactPage = () => {
   const [submitted, setSubmitted] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -29,6 +29,7 @@ const ContactPage = () => {
         method: "POST",
         body: formData,
         showSuccessToast: true,
+        showErrorToast: false,
       });
       setSubmitted(true);
       setFormData({
@@ -202,9 +203,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-900">Email</p>
-                    <p className="text-sm text-gray-500">
-                      support@fleebug.com
-                    </p>
+                    <p className="text-sm text-gray-500">support@fleebug.com</p>
                   </div>
                 </div>
 
