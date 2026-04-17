@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -9,6 +10,7 @@ import { Modal, Select } from "antd";
 import fetchApi from "@/lib/axios";
 import { toast } from "react-toastify";
 import { useAuth } from "@/hooks/useAuth";
+import { TrashIcon } from "lucide-react";
 
 const REMARK_TYPES = [
   { value: "academic", label: "Academic" },
@@ -50,7 +52,7 @@ export default function RemarksPage() {
     collegeId
       ? `/programs?fields=id&limit=100&conditions=${JSON.stringify({ collegeId })}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
   const programs: any[] =
     programsData?.rows || (Array.isArray(programsData) ? programsData : []);
@@ -60,7 +62,7 @@ export default function RemarksPage() {
     programIds.length
       ? `/batches?fields=id&limit=200&conditions=${JSON.stringify({ programId: programIds })}`
       : "",
-    { now: programIds.length > 0 }
+    { now: programIds.length > 0 },
   ) as any;
   const batchIds: string[] = (
     batchesData?.rows || (Array.isArray(batchesData) ? batchesData : [])
@@ -70,7 +72,7 @@ export default function RemarksPage() {
     batchIds.length
       ? `/groups?fields=id&limit=400&conditions=${JSON.stringify({ batchId: batchIds })}`
       : "",
-    { now: batchIds.length > 0 }
+    { now: batchIds.length > 0 },
   ) as any;
   const groupIds: string[] = (
     groupsData?.rows || (Array.isArray(groupsData) ? groupsData : [])
@@ -80,7 +82,7 @@ export default function RemarksPage() {
     groupIds.length
       ? `/students-with-info?${groupIds.map((id) => `groupIds=${id}`).join("&")}`
       : "",
-    { now: groupIds.length > 0 }
+    { now: groupIds.length > 0 },
   ) as any;
   const students: any[] = Array.isArray(studentsData)
     ? studentsData
@@ -88,8 +90,14 @@ export default function RemarksPage() {
 
   /* Map studentDetailId → display name for table rendering */
   const studentMap: Record<string, string> = useMemo(
-    () => Object.fromEntries(students.map((s: any) => [s.id, s.name || `${s.firstName} ${s.lastName}`.trim()])),
-    [students]
+    () =>
+      Object.fromEntries(
+        students.map((s: any) => [
+          s.id,
+          s.name || `${s.firstName} ${s.lastName}`.trim(),
+        ]),
+      ),
+    [students],
   );
 
   const studentOptions = students.map((s: any) => ({
@@ -99,14 +107,18 @@ export default function RemarksPage() {
 
   useEffect(() => {
     if (editItem) {
-      setFormData({
-        studentId: editItem.studentId || "",
-        remarkType: editItem.remarkType || "",
-        subject: editItem.subject || "",
-        message: editItem.message || "",
-      });
+      setTimeout(() => {
+        setFormData({
+          studentId: editItem.studentId || "",
+          remarkType: editItem.remarkType || "",
+          subject: editItem.subject || "",
+          message: editItem.message || "",
+        });
+      }, 0);
     } else if (createOpen) {
-      setFormData(EMPTY_FORM);
+      setTimeout(() => {
+        setFormData(EMPTY_FORM);
+      }, 0);
     }
   }, [editItem, createOpen]);
 
@@ -138,24 +150,41 @@ export default function RemarksPage() {
     }
   };
 
+  /* Re-key the table whenever studentMap becomes populated so the transformer fires */
+  const studentMapKey = Object.keys(studentMap).length;
+
   if (orgLoading) return <Loader />;
 
   return (
     <>
       <Table
-        key={tableKey}
+        key={`${tableKey}-${studentMapKey}`}
         title="Student Remarks"
         dataApiUrl="/student-remarks"
-        headers={["Student", "Remark Type", "Subject", "Message"]}
+        showActiveToggle={false}
+        headers={["Student", "Type", "Subject", "Message"]}
         dataKeys={["studentName", "remarkType", "subject", "message"]}
-        searchKeys={["subject", "remarkType"]}
-          onRowClick={(item) => setViewItem(item)}
-          onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
+        searchKeys={["studentName", "subject", "remarkType"]}
+        onRowClick={(item) => setViewItem(item)}
+        onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
         dataTransformer={(data) =>
           data.map((item: any) => ({
             ...item,
             studentName: studentMap[item.studentId] || item.studentId,
           }))
+        }
+        actions={
+          canEdit
+            ? {
+                delete: {
+                  label: "Delete remark? This cannot be undone.",
+                  description: "Are you sure you want to delete this remark?",
+                  icon: TrashIcon,
+                  deleteApiUrl: (id: string) => `/student-remarks/${id}`,
+                  reloadAfterDelete: true,
+                },
+              }
+            : {}
         }
       />
 
@@ -167,7 +196,10 @@ export default function RemarksPage() {
           canEdit && (
             <button
               key="edit"
-              onClick={() => { setEditItem(viewItem); setViewItem(null); }}
+              onClick={() => {
+                setEditItem(viewItem);
+                setViewItem(null);
+              }}
               className="bg-primary text-white text-sm py-2 px-4 rounded-md hover:bg-primary-dark transition"
             >
               Edit
@@ -181,21 +213,35 @@ export default function RemarksPage() {
           <div className="space-y-4 py-2 text-sm">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500 font-medium uppercase mb-0.5">Student</p>
-                <p className="text-sm text-gray-800">{studentMap[viewItem.studentId] || viewItem.studentId}</p>
+                <p className="text-xs text-gray-500 font-medium uppercase mb-0.5">
+                  Student
+                </p>
+                <p className="text-sm text-gray-800">
+                  {studentMap[viewItem.studentId] || viewItem.studentId}
+                </p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium uppercase mb-0.5">Type</p>
-                <p className="text-sm text-gray-800 capitalize">{viewItem.remarkType}</p>
+                <p className="text-xs text-gray-500 font-medium uppercase mb-0.5">
+                  Type
+                </p>
+                <p className="text-sm text-gray-800 capitalize">
+                  {viewItem.remarkType}
+                </p>
               </div>
               <div className="col-span-2">
-                <p className="text-xs text-gray-500 font-medium uppercase mb-0.5">Subject</p>
+                <p className="text-xs text-gray-500 font-medium uppercase mb-0.5">
+                  Subject
+                </p>
                 <p className="text-sm text-gray-800">{viewItem.subject}</p>
               </div>
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium uppercase mb-1">Message</p>
-              <p className="text-sm text-gray-700 bg-gray-50 rounded-md p-3">{viewItem.message}</p>
+              <p className="text-xs text-gray-500 font-medium uppercase mb-1">
+                Message
+              </p>
+              <p className="text-sm text-gray-700 bg-gray-50 rounded-md p-3">
+                {viewItem.message}
+              </p>
             </div>
           </div>
         )}
@@ -204,10 +250,16 @@ export default function RemarksPage() {
       {/* Create / Edit Modal */}
       <Modal
         open={createOpen || !!editItem}
-        onCancel={() => { setCreateOpen(false); setEditItem(null); }}
+        onCancel={() => {
+          setCreateOpen(false);
+          setEditItem(null);
+        }}
         onOk={handleSave}
         okText={submitting ? "Saving..." : editItem ? "Update" : "Create"}
-        okButtonProps={{ disabled: submitting, className: "bg-primary text-white" }}
+        okButtonProps={{
+          disabled: submitting,
+          className: "bg-primary text-white",
+        }}
         title={editItem ? "Edit Remark" : "Add Remark"}
         width={600}
       >
@@ -224,7 +276,9 @@ export default function RemarksPage() {
               onChange={(val) => setFormData({ ...formData, studentId: val })}
               options={studentOptions}
               filterOption={(input, option) =>
-                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                (option?.label ?? "")
+                  .toLowerCase()
+                  .includes(input.toLowerCase())
               }
               size="large"
             />
@@ -235,12 +289,16 @@ export default function RemarksPage() {
             </label>
             <select
               value={formData.remarkType}
-              onChange={(e) => setFormData({ ...formData, remarkType: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, remarkType: e.target.value })
+              }
               className="py-2.5 px-4 rounded-md border border-gray-200 w-full"
             >
               <option value="">Select Type</option>
               {REMARK_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
               ))}
             </select>
           </div>
@@ -250,7 +308,9 @@ export default function RemarksPage() {
             </label>
             <input
               value={formData.subject}
-              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, subject: e.target.value })
+              }
               className="py-2.5 px-4 rounded-md border border-gray-200 w-full"
               placeholder="Remark subject"
             />
@@ -261,7 +321,9 @@ export default function RemarksPage() {
             </label>
             <textarea
               value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
               className="py-2.5 px-4 rounded-md border border-gray-200 w-full"
               rows={4}
               placeholder="Remark message"

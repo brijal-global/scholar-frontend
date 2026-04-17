@@ -65,7 +65,7 @@ const getPageNumbers = (currentPage: number, totalPages: number) => {
 const Table = ({
   title,
   dataApiUrl,
-  showActiveToggle = true,
+  showActiveToggle = false,
   dataUniqueKey = "id",
   headers,
   dataKeys,

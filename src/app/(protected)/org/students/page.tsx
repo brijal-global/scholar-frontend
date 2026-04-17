@@ -715,7 +715,6 @@ export default function StudentsPage() {
           headers={["Name", "Email", "Group", "Date of Birth"]}
           dataKeys={["name", "email", "groupName", "dob"]}
           searchKeys={["name", "email", "groupName"]}
-          /* Add groupName for display; keep groupId as UUID */
           dataTransformer={(data) =>
             data.map((item: any) => ({
               ...item,
@@ -727,6 +726,12 @@ export default function StudentsPage() {
           onCreateClick={canCreate ? () => setCreateOpen(true) : undefined}
           extraFilters={filters}
           showActiveToggle={false}
+          actions={{
+            view: {
+              label: "View Analytics",
+              href: (id: string) => `/org/students/${id}`,
+            },
+          }}
         />
       ) : (
         <div className="space-y-4">
@@ -762,7 +767,7 @@ export default function StudentsPage() {
                 router.push(`/org/students/${viewItem.id}`);
               }
             }}
-            className="bg-indigo-600 text-white text-sm py-2 px-4 rounded-md hover:bg-indigo-700 transition"
+            className="bg-indigo-600 text-white text-sm py-2 px-4 rounded-md hover:bg-indigo-700 transition mr-3"
           >
             View Full Analytics
           </button>,

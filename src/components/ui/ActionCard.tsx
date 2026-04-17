@@ -4,6 +4,7 @@ import { FiEdit3 } from "react-icons/fi";
 import Link from "next/link";
 import DeleteModal from "@/components/modals/DeleteModal";
 import { CiTrash } from "react-icons/ci";
+import { BarChart2 } from "lucide-react";
 import useFetch from "@/hooks/useFetch";
 
 const ActionCard = ({ item, actions, refetch }: any) => {
@@ -29,7 +30,19 @@ const ActionCard = ({ item, actions, refetch }: any) => {
 
   return (
     <div className="flex justify-center cursor-pointer text-sm font-semibold">
-      <div className="flex items-start gap-6">
+      <div className="flex items-center gap-4">
+        {actions?.view && (
+          <Link
+            href={actions.view.href(item?.id)}
+            title={actions.view.label || "View"}
+          >
+            <BarChart2
+              size={18}
+              className="text-indigo-500 hover:text-indigo-700 cursor-pointer transition-colors"
+            />
+          </Link>
+        )}
+
         {actions?.edit && (
           <Link href={actions?.edit?.editLink(item?.id)}>
             <FiEdit3 size={20} color="#0295a9" className="cursor-pointer" />

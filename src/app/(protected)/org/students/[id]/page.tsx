@@ -15,11 +15,25 @@ import {
   Filler,
   Tooltip,
   Legend,
-  Title,
 } from "chart.js";
 import { Line, Bar, Doughnut, Radar } from "react-chartjs-2";
 import fetchApi from "@/lib/axios";
 import Loader from "@/components/ui/Loader";
+import {
+  ArrowLeft,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  AlertTriangle,
+  CheckCircle,
+  Info,
+  Calendar,
+  BookOpen,
+  MessageSquare,
+  Flame,
+  Award,
+  Brain,
+} from "lucide-react";
 
 ChartJS.register(
   CategoryScale,
@@ -32,163 +46,116 @@ ChartJS.register(
   Filler,
   Tooltip,
   Legend,
-  Title,
 );
 
-// ─── Colour palette ──────────────────────────────────────────────────────────
-const COLORS = {
-  primary: "#6366f1",
-  primaryLight: "rgba(99,102,241,0.15)",
-  success: "#22c55e",
-  successLight: "rgba(34,197,94,0.15)",
-  danger: "#ef4444",
-  dangerLight: "rgba(239,68,68,0.15)",
-  warning: "#f59e0b",
-  warningLight: "rgba(245,158,11,0.15)",
-  info: "#06b6d4",
-  infoLight: "rgba(6,182,212,0.15)",
-  purple: "#a855f7",
-  purpleLight: "rgba(168,85,247,0.15)",
-  gray: "#6b7280",
+// ── Colours ───────────────────────────────────────────────────────────────────
+const C = {
+  indigo: "#6366f1",
+  indigoLight: "rgba(99,102,241,0.12)",
+  green: "#16a34a",
+  greenLight: "rgba(22,163,74,0.12)",
+  red: "#dc2626",
+  redLight: "rgba(220,38,38,0.12)",
+  amber: "#d97706",
+  amberLight: "rgba(217,119,6,0.12)",
+  cyan: "#0891b2",
+  cyanLight: "rgba(8,145,178,0.12)",
+  violet: "#7c3aed",
+  violetLight: "rgba(124,58,237,0.12)",
 };
 
-const MODULE_COLORS = [
-  COLORS.primary,
-  COLORS.success,
-  COLORS.warning,
-  COLORS.danger,
-  COLORS.info,
-  COLORS.purple,
+const MODULE_PALETTE = [
+  C.indigo, C.green, C.amber, C.red, C.cyan, C.violet,
 ];
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function StatCard({
-  label,
-  value,
-  sub,
-  color = "primary",
-  icon,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  color?: "primary" | "success" | "danger" | "warning" | "info";
-  icon?: React.ReactNode;
-}) {
-  const colorMap = {
-    primary: "bg-indigo-50 border-indigo-100 text-indigo-600",
-    success: "bg-green-50 border-green-100 text-green-600",
-    danger: "bg-red-50 border-red-100 text-red-600",
-    warning: "bg-amber-50 border-amber-100 text-amber-600",
-    info: "bg-cyan-50 border-cyan-100 text-cyan-600",
-  };
+// ── Tiny helpers ──────────────────────────────────────────────────────────────
+function gradeColor(g: string) {
+  if (g === "A+" || g === "A") return "text-green-700 bg-green-50 border-green-200";
+  if (g === "B") return "text-blue-700 bg-blue-50 border-blue-200";
+  if (g === "C") return "text-amber-700 bg-amber-50 border-amber-200";
+  if (g === "D") return "text-orange-700 bg-orange-50 border-orange-200";
+  return "text-red-700 bg-red-50 border-red-200";
+}
 
+function riskColors(r: string) {
+  if (r === "low") return { bg: "bg-green-50", border: "border-green-200", text: "text-green-700", dot: "bg-green-500" };
+  if (r === "medium") return { bg: "bg-amber-50", border: "border-amber-200", text: "text-amber-700", dot: "bg-amber-500" };
+  return { bg: "bg-red-50", border: "border-red-200", text: "text-red-700", dot: "bg-red-500" };
+}
+
+function TrendIcon({ trend }: { trend: string }) {
+  if (trend === "improving") return <TrendingUp size={14} className="text-green-600" />;
+  if (trend === "declining") return <TrendingDown size={14} className="text-red-500" />;
+  return <Minus size={14} className="text-gray-400" />;
+}
+
+function TrendPill({ trend }: { trend: string }) {
+  const map: Record<string, string> = {
+    improving: "bg-green-50 text-green-700 border border-green-200",
+    declining: "bg-red-50 text-red-600 border border-red-200",
+    stable: "bg-gray-100 text-gray-500 border border-gray-200",
+  };
+  const labels: Record<string, string> = { improving: "Improving", declining: "Declining", stable: "Stable" };
   return (
-    <div
-      className={`rounded-xl border p-4 flex items-start gap-3 ${colorMap[color]}`}
-    >
-      {icon && <div className="text-xl mt-0.5">{icon}</div>}
-      <div>
-        <p className="text-xs font-medium uppercase tracking-wide opacity-70">
-          {label}
-        </p>
-        <p className="text-2xl font-bold mt-0.5">{value}</p>
-        {sub && <p className="text-xs opacity-60 mt-0.5">{sub}</p>}
-      </div>
-    </div>
+    <span className={`inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-medium ${map[trend] || map.stable}`}>
+      <TrendIcon trend={trend} />
+      {labels[trend] || trend}
+    </span>
   );
 }
 
-function SectionCard({
-  title,
-  children,
-  badge,
-}: {
-  title: string;
-  children: React.ReactNode;
-  badge?: string;
-}) {
+const CHART_OPT = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { font: { size: 10 }, boxWidth: 10 } } },
+};
+
+// ── Card shells ───────────────────────────────────────────────────────────────
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
-        {badge && (
-          <span className="text-xs px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
-            {badge}
-          </span>
-        )}
-      </div>
+    <div className={`bg-white border border-gray-100 rounded-2xl shadow-sm ${className}`}>
       {children}
     </div>
   );
 }
 
-function TrendBadge({ trend }: { trend: string }) {
-  const map: Record<string, { cls: string; label: string; icon: string }> = {
-    improving: {
-      cls: "bg-green-100 text-green-700",
-      label: "Improving",
-      icon: "↑",
-    },
-    declining: {
-      cls: "bg-red-100 text-red-700",
-      label: "Declining",
-      icon: "↓",
-    },
-    stable: { cls: "bg-gray-100 text-gray-600", label: "Stable", icon: "→" },
-  };
-  const t = map[trend] || map.stable;
+function CardHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${t.cls}`}>
-      {t.icon} {t.label}
-    </span>
+    <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-gray-50">
+      <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+      {right}
+    </div>
   );
 }
 
-function RiskBadge({ risk }: { risk: string }) {
-  const map: Record<string, string> = {
-    low: "bg-green-100 text-green-700",
-    medium: "bg-amber-100 text-amber-700",
-    high: "bg-red-100 text-red-700",
-  };
+function KpiCard({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  accent,
+}: {
+  icon: any;
+  label: string;
+  value: string | number;
+  sub?: string;
+  accent: string; // tailwind bg class for icon bg
+}) {
   return (
-    <span
-      className={`text-xs px-2.5 py-1 rounded-full font-semibold uppercase ${map[risk] || map.medium}`}
-    >
-      {risk} risk
-    </span>
+    <Card className="flex items-center gap-4 p-5">
+      <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${accent}`}>
+        <Icon size={20} className="text-white" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide truncate">{label}</p>
+        <p className="text-xl font-bold text-gray-900 leading-tight mt-0.5">{value}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5 truncate">{sub}</p>}
+      </div>
+    </Card>
   );
 }
 
-function GradeBadge({ grade }: { grade: string }) {
-  const cls =
-    grade === "A+" || grade === "A"
-      ? "bg-green-100 text-green-700"
-      : grade === "B"
-        ? "bg-blue-100 text-blue-700"
-        : grade === "C"
-          ? "bg-yellow-100 text-yellow-700"
-          : grade === "D"
-            ? "bg-orange-100 text-orange-700"
-            : "bg-red-100 text-red-700";
-  return (
-    <span className={`text-sm px-3 py-1 rounded-lg font-bold ${cls}`}>
-      {grade}
-    </span>
-  );
-}
-
-const CHART_DEFAULTS = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      labels: { font: { size: 11 }, boxWidth: 12 },
-    },
-  },
-};
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 export default function StudentAnalyticsPage({
   params,
 }: {
@@ -196,7 +163,6 @@ export default function StudentAnalyticsPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,9 +171,7 @@ export default function StudentAnalyticsPage({
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const res = await fetchApi(`/student-analytics/${id}`, {
-        showErrorToast: false,
-      });
+      const res = await fetchApi(`/student-analytics/${id}`, { showErrorToast: false });
       if (cancelled) return;
       if (res?.success === false || res?.error) {
         setError(res?.message || "Failed to load analytics");
@@ -216,9 +180,7 @@ export default function StudentAnalyticsPage({
       }
       setLoading(false);
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id]);
 
   if (loading) return <Loader />;
@@ -227,683 +189,479 @@ export default function StudentAnalyticsPage({
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
         <p className="text-gray-500">{error || "No analytics data found."}</p>
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-indigo-600 underline"
-        >
+        <button onClick={() => router.back()} className="text-sm text-indigo-600 underline">
           Go back
         </button>
       </div>
     );
   }
 
-  const { student, attendance, examResults, remarks, overallPerformance } =
-    data;
+  const { student, attendance, examResults, remarks, overallPerformance } = data;
 
-  // ── Attendance Chart Data ────────────────────────────────────────────────
+  // ── Chart datasets ────────────────────────────────────────────────────────
   const attLabels = (attendance.monthlyBreakdown || []).map((m: any) => {
-    const [year, month] = m.month.split("-");
-    return new Date(Number(year), Number(month) - 1).toLocaleString("default", {
-      month: "short",
-      year: "2-digit",
-    });
+    const [yr, mo] = m.month.split("-");
+    return new Date(+yr, +mo - 1).toLocaleString("default", { month: "short", year: "2-digit" });
   });
   const attRates = (attendance.monthlyBreakdown || []).map((m: any) => m.rate);
 
-  const attendanceChartData = {
+  const attChartData = {
     labels: attLabels,
-    datasets: [
-      {
-        label: "Attendance %",
-        data: attRates,
-        borderColor: COLORS.primary,
-        backgroundColor: COLORS.primaryLight,
-        fill: true,
-        tension: 0.4,
-        pointRadius: 3,
-      },
-    ],
+    datasets: [{
+      label: "Attendance %",
+      data: attRates,
+      borderColor: C.indigo,
+      backgroundColor: C.indigoLight,
+      fill: true,
+      tension: 0.45,
+      pointRadius: 3,
+      pointBackgroundColor: C.indigo,
+    }],
   };
 
-  // ── Exam Score Chart Data ────────────────────────────────────────────────
-  const examLabels = (examResults.exams || [])
-    .filter((e: any) => e.percentage !== null)
-    .map((e: any) => e.examName?.slice(0, 20) || "Exam");
-  const examScores = (examResults.exams || [])
-    .filter((e: any) => e.percentage !== null)
-    .map((e: any) => e.percentage);
-
+  const scoredExams = (examResults.exams || []).filter((e: any) => e.percentage !== null);
   const examChartData = {
-    labels: examLabels,
-    datasets: [
-      {
-        label: "Score %",
-        data: examScores,
-        backgroundColor: examScores.map((s: number) =>
-          s >= 60 ? COLORS.successLight : COLORS.dangerLight,
-        ),
-        borderColor: examScores.map((s: number) =>
-          s >= 60 ? COLORS.success : COLORS.danger,
-        ),
-        borderWidth: 1.5,
-        borderRadius: 6,
-      },
-    ],
+    labels: scoredExams.map((e: any) => e.examName?.slice(0, 18) || "Exam"),
+    datasets: [{
+      label: "Score %",
+      data: scoredExams.map((e: any) => e.percentage),
+      backgroundColor: scoredExams.map((e: any) =>
+        e.percentage >= 60 ? C.greenLight : C.redLight,
+      ),
+      borderColor: scoredExams.map((e: any) => e.percentage >= 60 ? C.green : C.red),
+      borderWidth: 2,
+      borderRadius: 6,
+    }],
   };
 
-  // ── Module Radar Chart ────────────────────────────────────────────────────
   const modPerf = (examResults.modulePerformance || []).slice(0, 6);
   const radarData = {
-    labels: modPerf.map((m: any) => m.moduleName?.slice(0, 15) || ""),
-    datasets: [
-      {
-        label: "Score %",
-        data: modPerf.map((m: any) => m.pct),
-        backgroundColor: COLORS.primaryLight,
-        borderColor: COLORS.primary,
-        borderWidth: 2,
-        pointBackgroundColor: COLORS.primary,
-      },
-    ],
+    labels: modPerf.map((m: any) => m.moduleName?.slice(0, 12) || ""),
+    datasets: [{
+      label: "Score %",
+      data: modPerf.map((m: any) => m.pct),
+      backgroundColor: C.indigoLight,
+      borderColor: C.indigo,
+      borderWidth: 2,
+      pointBackgroundColor: C.indigo,
+      pointRadius: 4,
+    }],
   };
 
-  // ── Remarks Doughnut Chart ────────────────────────────────────────────────
   const remarkTypes = Object.keys(remarks.byType || {});
-  const remarkCounts = Object.values(remarks.byType || {}) as number[];
-  const remarkChartData = {
+  const remarkDonut = {
     labels: remarkTypes,
-    datasets: [
-      {
-        data: remarkCounts,
-        backgroundColor: MODULE_COLORS.slice(0, remarkTypes.length),
-        borderWidth: 0,
-      },
-    ],
+    datasets: [{
+      data: Object.values(remarks.byType || {}) as number[],
+      backgroundColor: MODULE_PALETTE.slice(0, remarkTypes.length),
+      borderWidth: 0,
+      hoverOffset: 4,
+    }],
   };
 
-  // ── Overall Score Arc ────────────────────────────────────────────────────
-  const overallPct = overallPerformance.score;
+  const scoreColor =
+    overallPerformance.score >= 65 ? C.green
+    : overallPerformance.score >= 45 ? C.amber
+    : C.red;
+
   const overallDonut = {
-    labels: ["Score", "Remaining"],
-    datasets: [
-      {
-        data: [overallPct, 100 - overallPct],
-        backgroundColor: [
-          overallPct >= 65 ? COLORS.success : overallPct >= 45 ? COLORS.warning : COLORS.danger,
-          "#f3f4f6",
-        ],
-        borderWidth: 0,
-      },
-    ],
+    labels: ["Score", ""],
+    datasets: [{
+      data: [overallPerformance.score, 100 - overallPerformance.score],
+      backgroundColor: [scoreColor, "#f3f4f6"],
+      borderWidth: 0,
+    }],
   };
 
-  const initials = [student.firstName?.[0], student.lastName?.[0]]
-    .filter(Boolean)
-    .join("")
-    .toUpperCase();
+  const initials = [student.firstName?.[0], student.lastName?.[0]].filter(Boolean).join("").toUpperCase();
+  const risk = overallPerformance.risk;
+  const rc = riskColors(risk);
 
   return (
-    <div className="space-y-6 max-w-7xl">
-      {/* Back */}
+    <div className="space-y-6 max-w-7xl pb-10">
+      {/* ── Back bar ─────────────────────────────────────────────────────── */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition"
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors"
       >
-        ← Back to Students
+        <ArrowLeft size={16} />
+        Back to Students
       </button>
 
-      {/* ── Student Profile Card ──────────────────────────────────────────── */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-          {/* Avatar */}
-          <div className="shrink-0">
-            {student.profileImage ? (
-              <img
-                src={student.profileImage}
-                alt={student.fullName}
-                className="w-20 h-20 rounded-full object-cover border-2 border-indigo-200"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center text-2xl font-bold text-indigo-600">
-                {initials}
+      {/* ── Profile hero ────────────────────────────────────────────────── */}
+      <Card className="overflow-hidden">
+        {/* Coloured banner */}
+        <div className="h-20 bg-linear-to-r from-indigo-500 via-violet-500 to-purple-600" />
+        <div className="px-6 pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10">
+            {/* Avatar */}
+            <div className="shrink-0">
+              {student.profileImage ? (
+                <img
+                  src={student.profileImage}
+                  alt={student.fullName}
+                  className="w-20 h-20 rounded-2xl border-4 border-white shadow-md object-cover"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-md bg-indigo-600 flex items-center justify-center text-2xl font-bold text-white">
+                  {initials}
+                </div>
+              )}
+            </div>
+
+            {/* Name + tags */}
+            <div className="flex-1 pb-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-bold text-gray-900">{student.fullName}</h1>
+                {/* Risk */}
+                <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${rc.bg} ${rc.border} ${rc.text}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${rc.dot}`} />
+                  {risk.charAt(0).toUpperCase() + risk.slice(1)} Risk
+                </span>
+                {/* Grade */}
+                <span className={`text-sm font-bold px-3 py-1 rounded-lg border ${gradeColor(overallPerformance.grade)}`}>
+                  {overallPerformance.grade}
+                </span>
               </div>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-xl font-bold text-gray-900">
-                {student.fullName}
-              </h1>
-              <RiskBadge risk={overallPerformance.risk} />
-              <GradeBadge grade={overallPerformance.grade} />
-            </div>
-            <p className="text-sm text-gray-500 mt-1">{student.email}</p>
-            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2 text-xs text-gray-500">
-              {student.program?.name && (
-                <span>
-                  <span className="font-medium text-gray-700">Program:</span>{" "}
-                  {student.program.name}
-                </span>
-              )}
-              {student.batch?.name && (
-                <span>
-                  <span className="font-medium text-gray-700">Batch:</span>{" "}
-                  {student.batch.name}
-                </span>
-              )}
-              {student.group?.name && (
-                <span>
-                  <span className="font-medium text-gray-700">Group:</span>{" "}
-                  {student.group.name}
-                </span>
-              )}
-              {student.gender && (
-                <span>
-                  <span className="font-medium text-gray-700">Gender:</span>{" "}
-                  {student.gender}
-                </span>
-              )}
-              {student.phone && (
-                <span>
-                  <span className="font-medium text-gray-700">Phone:</span>{" "}
-                  {student.phone}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Overall Score Donut */}
-          <div className="shrink-0 flex flex-col items-center gap-1">
-            <div className="w-24 h-24 relative">
-              <Doughnut
-                data={overallDonut}
-                options={{
-                  ...CHART_DEFAULTS,
-                  cutout: "72%",
-                  plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                }}
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-lg font-bold text-gray-800">
-                  {overallPct}
-                </span>
-                <span className="text-[10px] text-gray-400">/ 100</span>
+              <p className="text-sm text-gray-500 mt-1">{student.email}</p>
+              <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-2 text-xs text-gray-500">
+                {student.program?.name && <span><span className="font-medium text-gray-700">Program:</span> {student.program.name}</span>}
+                {student.batch?.name && <span><span className="font-medium text-gray-700">Batch:</span> {student.batch.name}</span>}
+                {student.group?.name && <span><span className="font-medium text-gray-700">Group:</span> {student.group.name}</span>}
+                {student.dob && <span><span className="font-medium text-gray-700">DOB:</span> {new Date(student.dob).toLocaleDateString()}</span>}
+                {student.phone && <span><span className="font-medium text-gray-700">Phone:</span> {student.phone}</span>}
               </div>
             </div>
-            <p className="text-xs text-gray-500">Overall Score</p>
+
+            {/* Overall score donut */}
+            <div className="shrink-0 flex flex-col items-center gap-1 sm:ml-auto">
+              <div className="w-28 h-28 relative">
+                <Doughnut
+                  data={overallDonut}
+                  options={{ ...CHART_OPT, cutout: "76%", plugins: { legend: { display: false }, tooltip: { enabled: false } } }}
+                />
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-extrabold text-gray-800">{overallPerformance.score}</span>
+                  <span className="text-[10px] text-gray-400 font-medium">/ 100</span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 font-medium">Overall Score</p>
+            </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* ── KPI Row ───────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          label="Attendance Rate"
-          value={`${attendance.attendanceRate}%`}
+      {/* ── KPI row ─────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard icon={Calendar} label="Attendance Rate" value={`${attendance.attendanceRate}%`}
           sub={`${attendance.totalPresent} days present`}
-          color={
-            attendance.attendanceRate >= 75
-              ? "success"
-              : attendance.attendanceRate >= 60
-                ? "warning"
-                : "danger"
-          }
-          icon="📅"
-        />
-        <StatCard
-          label="Avg Exam Score"
-          value={`${examResults.avgScore}%`}
-          sub={`${examResults.attemptedExams} exams taken`}
-          color={
-            examResults.avgScore >= 60
-              ? "success"
-              : examResults.avgScore >= 40
-                ? "warning"
-                : "danger"
-          }
-          icon="📝"
-        />
-        <StatCard
-          label="Total Remarks"
-          value={remarks.total}
+          accent={attendance.attendanceRate >= 75 ? "bg-green-500" : attendance.attendanceRate >= 60 ? "bg-amber-500" : "bg-red-500"} />
+        <KpiCard icon={BookOpen} label="Avg Exam Score" value={`${examResults.avgScore}%`}
+          sub={`${examResults.attemptedExams} exams attempted`}
+          accent={examResults.avgScore >= 60 ? "bg-indigo-500" : examResults.avgScore >= 40 ? "bg-amber-500" : "bg-red-500"} />
+        <KpiCard icon={MessageSquare} label="Total Remarks" value={remarks.total}
           sub={`${remarks.positiveCount} positive · ${remarks.negativeCount} negative`}
-          color="info"
-          icon="💬"
-        />
-        <StatCard
-          label="Current Streak"
-          value={`${attendance.currentStreak}d`}
-          sub={`Max: ${attendance.maxStreak} days`}
-          color="primary"
-          icon="🔥"
-        />
+          accent="bg-cyan-500" />
+        <KpiCard icon={Flame} label="Attendance Streak" value={`${attendance.currentStreak}d`}
+          sub={`Max streak: ${attendance.maxStreak} days`}
+          accent="bg-orange-500" />
       </div>
 
-      {/* ── Main Grid ─────────────────────────────────────────────────────── */}
+      {/* ── Row 1: Attendance chart (2/3) + Module radar (1/3) ─────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {/* Attendance Line Chart */}
-        <div className="lg:col-span-2">
-          <SectionCard
+        <Card className="lg:col-span-2">
+          <CardHeader
             title="Monthly Attendance Trend"
-            badge={`Trend: ${attendance.trend}`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <TrendBadge trend={attendance.trend} />
-              <span className="text-xs text-gray-500">
-                R² = {attendance.regression?.r2?.toFixed(2)} · Predicted next
-                month:{" "}
-                <strong className="text-indigo-600">
-                  {attendance.predictedNextMonth}%
-                </strong>
-              </span>
-            </div>
-            <div className="h-56">
-              {attLabels.length > 0 ? (
-                <Line
-                  data={attendanceChartData}
-                  options={{
-                    ...CHART_DEFAULTS,
-                    scales: {
-                      y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { font: { size: 10 }, callback: (v) => `${v}%` },
-                        grid: { color: "rgba(0,0,0,0.04)" },
-                      },
-                      x: { ticks: { font: { size: 10 } }, grid: { display: false } },
-                    },
-                    plugins: {
-                      ...CHART_DEFAULTS.plugins,
-                      tooltip: {
-                        callbacks: {
-                          label: (ctx) => `${ctx.parsed.y}% present`,
-                        },
-                      },
-                    },
-                  }}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                  No attendance data available
-                </div>
-              )}
-            </div>
-          </SectionCard>
-        </div>
+            right={
+              <div className="flex items-center gap-2">
+                <TrendPill trend={attendance.trend} />
+                <span className="text-xs text-gray-400 hidden sm:block">
+                  Next month forecast: <strong className="text-indigo-600">{attendance.predictedNextMonth}%</strong>
+                </span>
+              </div>
+            }
+          />
+          <div className="p-5 h-60">
+            {attLabels.length > 0 ? (
+              <Line data={attChartData} options={{
+                ...CHART_OPT,
+                scales: {
+                  y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => `${v}%` }, grid: { color: "rgba(0,0,0,0.04)" } },
+                  x: { ticks: { font: { size: 10 } }, grid: { display: false } },
+                },
+                plugins: { ...CHART_OPT.plugins, tooltip: { callbacks: { label: (c) => `${c.parsed.y}% present` } } },
+              }} />
+            ) : (
+              <EmptyState label="No attendance data" />
+            )}
+          </div>
+        </Card>
 
-        {/* Module Radar */}
-        <SectionCard title="Module Performance">
-          <div className="h-64">
+        <Card>
+          <CardHeader title="Module Performance" />
+          <div className="p-5 h-64">
             {modPerf.length > 0 ? (
-              <Radar
-                data={radarData}
-                options={{
-                  ...CHART_DEFAULTS,
-                  scales: {
-                    r: {
-                      min: 0,
-                      max: 100,
-                      ticks: { font: { size: 9 }, stepSize: 25 },
-                      pointLabels: { font: { size: 9 } },
-                      grid: { color: "rgba(0,0,0,0.05)" },
-                    },
+              <Radar data={radarData} options={{
+                ...CHART_OPT,
+                scales: {
+                  r: {
+                    min: 0, max: 100,
+                    ticks: { font: { size: 9 }, stepSize: 25, backdropColor: "transparent" },
+                    pointLabels: { font: { size: 9 } },
+                    grid: { color: "rgba(0,0,0,0.06)" },
                   },
-                  plugins: { legend: { display: false } },
-                }}
-              />
+                },
+                plugins: { legend: { display: false } },
+              }} />
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                No module data available
-              </div>
+              <EmptyState label="No module data" />
             )}
           </div>
-        </SectionCard>
-
-        {/* Exam Bar Chart */}
-        <div className="lg:col-span-2">
-          <SectionCard
-            title="Exam Results"
-            badge={`Avg: ${examResults.avgScore}%`}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <TrendBadge trend={examResults.trend} />
-              <span className="text-xs text-gray-500">
-                Predicted next score:{" "}
-                <strong className="text-indigo-600">
-                  {examResults.predictedNextScore}%
-                </strong>
-              </span>
-            </div>
-            <div className="h-56">
-              {examLabels.length > 0 ? (
-                <Bar
-                  data={examChartData}
-                  options={{
-                    ...CHART_DEFAULTS,
-                    scales: {
-                      y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { font: { size: 10 }, callback: (v) => `${v}%` },
-                        grid: { color: "rgba(0,0,0,0.04)" },
-                      },
-                      x: {
-                        ticks: {
-                          font: { size: 9 },
-                          maxRotation: 30,
-                          minRotation: 10,
-                        },
-                        grid: { display: false },
-                      },
-                    },
-                    plugins: {
-                      ...CHART_DEFAULTS.plugins,
-                      tooltip: {
-                        callbacks: {
-                          label: (ctx) => `Score: ${ctx.parsed.y}%`,
-                        },
-                      },
-                    },
-                  }}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                  No exam data available
-                </div>
-              )}
-            </div>
-          </SectionCard>
-        </div>
-
-        {/* Remarks Doughnut */}
-        <SectionCard title="Remarks by Type">
-          <div className="h-56">
-            {remarkTypes.length > 0 ? (
-              <Doughnut
-                data={remarkChartData}
-                options={{
-                  ...CHART_DEFAULTS,
-                  cutout: "55%",
-                  plugins: {
-                    legend: {
-                      position: "bottom",
-                      labels: { font: { size: 10 }, boxWidth: 10 },
-                    },
-                  },
-                }}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                No remarks data
-              </div>
-            )}
-          </div>
-        </SectionCard>
+        </Card>
       </div>
 
-      {/* ── Bottom Row ────────────────────────────────────────────────────── */}
+      {/* ── Row 2: Exam bar (2/3) + Remarks donut (1/3) ─────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <Card className="lg:col-span-2">
+          <CardHeader
+            title="Exam Results"
+            right={
+              <div className="flex items-center gap-2">
+                <TrendPill trend={examResults.trend} />
+                <span className="text-xs text-gray-400 hidden sm:block">
+                  Next forecast: <strong className="text-indigo-600">{examResults.predictedNextScore}%</strong>
+                </span>
+              </div>
+            }
+          />
+          <div className="p-5 h-60">
+            {scoredExams.length > 0 ? (
+              <Bar data={examChartData} options={{
+                ...CHART_OPT,
+                scales: {
+                  y: { min: 0, max: 100, ticks: { font: { size: 10 }, callback: (v) => `${v}%` }, grid: { color: "rgba(0,0,0,0.04)" } },
+                  x: { ticks: { font: { size: 9 }, maxRotation: 30, minRotation: 10 }, grid: { display: false } },
+                },
+                plugins: { ...CHART_OPT.plugins, tooltip: { callbacks: { label: (c) => `Score: ${c.parsed.y}%` } } },
+              }} />
+            ) : (
+              <EmptyState label="No exam data" />
+            )}
+          </div>
+        </Card>
+
+        <Card>
+          <CardHeader title="Remarks by Type" right={<span className="text-xs text-gray-400">{remarks.total} total</span>} />
+          <div className="p-5 h-64">
+            {remarkTypes.length > 0 ? (
+              <Doughnut data={remarkDonut} options={{
+                ...CHART_OPT, cutout: "52%",
+                plugins: { legend: { position: "bottom", labels: { font: { size: 10 }, boxWidth: 10, padding: 12 } } },
+              }} />
+            ) : (
+              <EmptyState label="No remarks" />
+            )}
+          </div>
+          {/* Sentiment strip */}
+          {remarks.total > 0 && (
+            <div className="px-5 pb-4 flex gap-2 text-xs">
+              {[
+                { label: "Positive", count: remarks.positiveCount, cls: "bg-green-100 text-green-700" },
+                { label: "Neutral", count: remarks.neutralCount, cls: "bg-gray-100 text-gray-600" },
+                { label: "Negative", count: remarks.negativeCount, cls: "bg-red-100 text-red-600" },
+              ].map((s) => (
+                <span key={s.label} className={`flex-1 text-center px-2 py-1 rounded-lg font-medium ${s.cls}`}>
+                  {s.label} {s.count}
+                </span>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      {/* ── Row 3: ML Insights + Recent Remarks ─────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-        {/* AI Insights */}
-        <SectionCard title="ML Performance Insights">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div>
-                <p className="text-xs text-gray-500">Attendance Regression R²</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 bg-gray-100 rounded-full h-2">
-                    <div
-                      className="bg-indigo-500 h-2 rounded-full"
-                      style={{
-                        width: `${Math.round((attendance.regression?.r2 || 0) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs font-mono text-indigo-600 w-10">
-                    {(attendance.regression?.r2 || 0).toFixed(2)}
-                  </span>
+        {/* ML Insights */}
+        <Card>
+          <CardHeader title="ML-Powered Analysis" right={<Brain size={16} className="text-indigo-400" />} />
+          <div className="p-5 space-y-4">
+            {/* Regression bars */}
+            {[
+              { label: "Attendance R²", value: attendance.regression?.r2 || 0, color: "bg-indigo-500" },
+              { label: "Exam Score R²", value: examResults.regression?.r2 || 0, color: "bg-violet-500" },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>{item.label}</span>
+                  <span className="font-mono font-semibold text-gray-700">{item.value.toFixed(3)}</span>
                 </div>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Exam Score Regression R²</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex-1 bg-gray-100 rounded-full h-2">
-                    <div
-                      className="bg-purple-500 h-2 rounded-full"
-                      style={{
-                        width: `${Math.round((examResults.regression?.r2 || 0) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <span className="text-xs font-mono text-purple-600 w-10">
-                    {(examResults.regression?.r2 || 0).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="border-t pt-3 space-y-2">
-              <p className="text-xs font-semibold text-gray-700">
-                Insights & Recommendations
-              </p>
-              {(overallPerformance.insights || []).map(
-                (insight: string, i: number) => (
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    key={i}
-                    className="flex items-start gap-2 text-xs text-gray-600"
-                  >
-                    <span className="mt-0.5 shrink-0 text-indigo-400">•</span>
-                    <span>{insight}</span>
-                  </div>
-                ),
-              )}
+                    className={`h-full rounded-full ${item.color} transition-all`}
+                    style={{ width: `${Math.round(item.value * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+
+            {/* Slope info */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {[
+                { label: "Attendance Slope", value: attendance.regression?.slope?.toFixed(3), unit: "/month" },
+                { label: "Exam Score Slope", value: examResults.regression?.slope?.toFixed(3), unit: "/exam" },
+              ].map((s) => (
+                <div key={s.label} className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wide">{s.label}</p>
+                  <p className="text-sm font-bold font-mono text-gray-800 mt-0.5">{s.value}<span className="text-xs font-normal text-gray-400 ml-0.5">{s.unit}</span></p>
+                </div>
+              ))}
             </div>
-            <div className="border-t pt-3 grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-gray-50 rounded-lg p-2">
-                <p className="text-gray-500">Attendance Slope</p>
-                <p className="font-mono font-semibold">
-                  {attendance.regression?.slope?.toFixed(3)}/month
-                </p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-2">
-                <p className="text-gray-500">Exam Score Slope</p>
-                <p className="font-mono font-semibold">
-                  {examResults.regression?.slope?.toFixed(3)}/exam
-                </p>
-              </div>
+
+            {/* Insights */}
+            <div className="space-y-2 pt-1 border-t border-gray-50">
+              {(overallPerformance.insights || []).map((insight: string, i: number) => {
+                const isGood = insight.toLowerCase().includes("excellent") || insight.toLowerCase().includes("improving") || insight.toLowerCase().includes("on track");
+                const isWarn = insight.toLowerCase().includes("below") || insight.toLowerCase().includes("critical") || insight.toLowerCase().includes("declining");
+                const Icon = isGood ? CheckCircle : isWarn ? AlertTriangle : Info;
+                const cls = isGood ? "text-green-600" : isWarn ? "text-amber-600" : "text-indigo-500";
+                return (
+                  <div key={i} className="flex items-start gap-2">
+                    <Icon size={13} className={`${cls} mt-0.5 shrink-0`} />
+                    <p className="text-xs text-gray-600 leading-relaxed">{insight}</p>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </SectionCard>
+        </Card>
 
         {/* Recent Remarks */}
-        <SectionCard title="Recent Remarks">
-          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+        <Card>
+          <CardHeader title="Recent Remarks" right={<Award size={16} className="text-indigo-400" />} />
+          <div className="p-5 space-y-2 max-h-80 overflow-y-auto">
             {(remarks.recent || []).length === 0 && (
-              <p className="text-sm text-gray-400">No remarks found.</p>
+              <EmptyState label="No remarks recorded yet" />
             )}
             {(remarks.recent || []).map((r: any) => {
-              const typeColor: Record<string, string> = {
-                academic: "bg-indigo-100 text-indigo-700",
-                behavioral: "bg-red-100 text-red-700",
-                attendance: "bg-amber-100 text-amber-700",
-                participation: "bg-green-100 text-green-700",
-                achievement: "bg-purple-100 text-purple-700",
+              const typeColors: Record<string, string> = {
+                academic: "bg-indigo-50 text-indigo-700 border-indigo-200",
+                behavioral: "bg-red-50 text-red-700 border-red-200",
+                attendance: "bg-amber-50 text-amber-700 border-amber-200",
+                participation: "bg-green-50 text-green-700 border-green-200",
+                achievement: "bg-violet-50 text-violet-700 border-violet-200",
+                general: "bg-gray-100 text-gray-600 border-gray-200",
               };
               return (
-                <div
-                  key={r.id}
-                  className="border border-gray-100 rounded-lg p-3 hover:bg-gray-50 transition"
-                >
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${typeColor[r.type] || "bg-gray-100 text-gray-600"}`}
-                    >
+                <div key={r.id} className="group border border-gray-100 rounded-xl p-3 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border ${typeColors[r.type] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
                       {r.type}
                     </span>
-                    <span className="text-[10px] text-gray-400">
-                      {new Date(r.date).toLocaleDateString()}
-                    </span>
+                    <span className="text-[10px] text-gray-400">{new Date(r.date).toLocaleDateString()}</span>
                   </div>
-                  <p className="text-xs font-medium text-gray-800">{r.subject}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
-                    {r.message}
-                  </p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    By {r.teacherName}
-                  </p>
+                  <p className="text-xs font-semibold text-gray-800">{r.subject}</p>
+                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{r.message}</p>
+                  <p className="text-[10px] text-gray-400 mt-1.5">By {r.teacherName}</p>
                 </div>
               );
             })}
           </div>
-        </SectionCard>
+        </Card>
       </div>
 
-      {/* ── Exam Details Table ────────────────────────────────────────────── */}
+      {/* ── Exam detail table ────────────────────────────────────────────── */}
       {examResults.exams?.length > 0 && (
-        <SectionCard title="Detailed Exam Results">
+        <Card>
+          <CardHeader title="Exam Results Breakdown" right={
+            <span className="text-xs text-gray-400">{examResults.attemptedExams} / {examResults.totalExams} attempted</span>
+          } />
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 text-gray-500 font-medium">
-                    Exam
-                  </th>
-                  <th className="text-left py-2 px-3 text-gray-500 font-medium">
-                    Type
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    Score
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    %
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    Grade
-                  </th>
+                <tr className="bg-gray-50 text-gray-500 uppercase tracking-wide text-[10px]">
+                  {["Exam", "Type", "Obtained", "%", "Grade"].map((h) => (
+                    <th key={h} className={`py-3 px-4 font-semibold ${h !== "Exam" ? "text-center" : "text-left"}`}>{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-50">
                 {examResults.exams.map((exam: any) => (
-                  <tr
-                    key={exam.examId}
-                    className="border-b border-gray-50 hover:bg-gray-50"
-                  >
-                    <td className="py-2.5 px-3 font-medium text-gray-800">
-                      {exam.examName}
+                  <tr key={exam.examId} className="hover:bg-indigo-50/20 transition-colors">
+                    <td className="py-3 px-4 font-medium text-gray-800">{exam.examName}</td>
+                    <td className="py-3 px-4 text-center capitalize text-gray-500">{exam.examType}</td>
+                    <td className="py-3 px-4 text-center text-gray-700">
+                      {exam.percentage !== null ? `${exam.obtainedTotal} / ${exam.maxTotal}` : "—"}
                     </td>
-                    <td className="py-2.5 px-3 text-gray-500 capitalize">
-                      {exam.examType}
-                    </td>
-                    <td className="py-2.5 px-3 text-center text-gray-700">
-                      {exam.percentage !== null
-                        ? `${exam.obtainedTotal} / ${exam.maxTotal}`
-                        : "—"}
-                    </td>
-                    <td className="py-2.5 px-3 text-center">
+                    <td className="py-3 px-4 text-center">
                       {exam.percentage !== null ? (
-                        <span
-                          className={
-                            exam.percentage >= 60
-                              ? "text-green-600 font-medium"
-                              : "text-red-500 font-medium"
-                          }
-                        >
+                        <span className={`font-semibold ${exam.percentage >= 60 ? "text-green-600" : "text-red-500"}`}>
                           {exam.percentage}%
                         </span>
-                      ) : (
-                        <span className="text-gray-400">—</span>
-                      )}
+                      ) : <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="py-2.5 px-3 text-center">
-                      <GradeBadge grade={exam.grade} />
+                    <td className="py-3 px-4 text-center">
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${gradeColor(exam.grade)}`}>
+                        {exam.grade}
+                      </span>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </SectionCard>
+        </Card>
       )}
 
-      {/* ── Module Performance Table ──────────────────────────────────────── */}
+      {/* ── Module performance table ─────────────────────────────────────── */}
       {examResults.modulePerformance?.length > 0 && (
-        <SectionCard title="Performance by Module">
+        <Card>
+          <CardHeader title="Performance by Module" />
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 text-gray-500 font-medium">
-                    Module
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    Attempts
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    Avg Score
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    Avg Max
-                  </th>
-                  <th className="text-center py-2 px-3 text-gray-500 font-medium">
-                    %
-                  </th>
-                  <th className="py-2 px-3 text-gray-500 font-medium">
-                    Progress
-                  </th>
+                <tr className="bg-gray-50 text-gray-500 uppercase tracking-wide text-[10px]">
+                  {["Module", "Attempts", "Avg Score", "Avg Max", "%", "Progress"].map((h) => (
+                    <th key={h} className={`py-3 px-4 font-semibold ${h === "Module" || h === "Progress" ? "text-left" : "text-center"}`}>{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody>
-                {[...(examResults.modulePerformance || [])]
-                  .sort((a: any, b: any) => b.pct - a.pct)
-                  .map((mod: any, i: number) => (
-                    <tr
-                      key={i}
-                      className="border-b border-gray-50 hover:bg-gray-50"
-                    >
-                      <td className="py-2.5 px-3 font-medium text-gray-800">
-                        {mod.moduleName}
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-gray-500">
-                        {mod.attempts}
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-gray-700">
-                        {mod.avgScore}
-                      </td>
-                      <td className="py-2.5 px-3 text-center text-gray-500">
-                        {mod.avgTotal}
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <span
-                          className={
-                            mod.pct >= 60
-                              ? "text-green-600 font-medium"
-                              : "text-red-500 font-medium"
-                          }
-                        >
-                          {mod.pct}%
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 min-w-[120px]">
-                        <div className="bg-gray-100 rounded-full h-1.5">
-                          <div
-                            className="h-1.5 rounded-full"
-                            style={{
-                              width: `${Math.min(100, mod.pct)}%`,
-                              backgroundColor:
-                                mod.pct >= 60 ? COLORS.success : COLORS.danger,
-                            }}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+              <tbody className="divide-y divide-gray-50">
+                {[...(examResults.modulePerformance || [])].sort((a: any, b: any) => b.pct - a.pct).map((mod: any, i: number) => (
+                  <tr key={i} className="hover:bg-indigo-50/20 transition-colors">
+                    <td className="py-3 px-4 font-medium text-gray-800">{mod.moduleName}</td>
+                    <td className="py-3 px-4 text-center text-gray-500">{mod.attempts}</td>
+                    <td className="py-3 px-4 text-center text-gray-700">{mod.avgScore}</td>
+                    <td className="py-3 px-4 text-center text-gray-400">{mod.avgTotal}</td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`font-semibold ${mod.pct >= 60 ? "text-green-600" : "text-red-500"}`}>{mod.pct}%</span>
+                    </td>
+                    <td className="py-3 px-4 min-w-[140px]">
+                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.min(100, mod.pct)}%`,
+                            backgroundColor: mod.pct >= 60 ? C.green : C.red,
+                          }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        </SectionCard>
+        </Card>
       )}
     </div>
+  );
+}
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="h-full flex items-center justify-center text-sm text-gray-400">{label}</div>
   );
 }
