@@ -83,13 +83,15 @@ export default function OrgProfilePage() {
   /* seed from user data */
   useEffect(() => {
     if (userData) {
-      setProfileForm({
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        phone: userData.phone || "",
-        gender: userData.gender || "male",
-        address: userData.address || "",
-      });
+      setTimeout(() => {
+        setProfileForm({
+          firstName: userData.firstName || "",
+          lastName: userData.lastName || "",
+          phone: userData.phone || "",
+          gender: userData.gender || "male",
+          address: userData.address || "",
+        });
+      }, 0);
     }
   }, [userData]);
 
@@ -125,7 +127,7 @@ export default function OrgProfilePage() {
     if (err) return toast.error(err);
     setPasswordSaving(true);
     try {
-      await fetchApi("/auth/change-my-password", {
+      const res = await fetchApi("/auth/change-my-password", {
         method: "PUT",
         body: {
           currentPassword: passwordForm.currentPassword,
@@ -133,12 +135,14 @@ export default function OrgProfilePage() {
           confirmPassword: passwordForm.confirmPassword,
         },
       });
-      toast.success("Password changed successfully");
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
+      if (res?.success) {
+        toast.success("Password changed successfully");
+        setPasswordForm({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
     } catch {
       toast.error("Failed to change password. Check your current password.");
     } finally {
