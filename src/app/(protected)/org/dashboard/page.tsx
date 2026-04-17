@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useOrg } from "@/contexts/OrgContext";
@@ -53,57 +54,92 @@ export default function OrgDashboard() {
 
   const { data: programsData, loading: l1 } = useFetch(
     collegeId
-      ? `/programs?fields=id&limit=1&conditions=${conditions}`
+      ? `/programs?fields=id&limit=999999&conditions=${conditions}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
 
   const { data: batchesData, loading: l2 } = useFetch(
     collegeId
-      ? `/batches?fields=id&limit=1&joinConditions=${JSON.stringify({ program: { collegeId } })}`
+      ? `/batches?fields=id&limit=999999&joinConditions=${JSON.stringify({ program: { collegeId } })}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
 
   const { data: studentsData, loading: l3 } = useFetch(
-    collegeId
-      ? `/student-details?fields=id&limit=1`
-      : "",
-    { now: !!collegeId }
+    collegeId ? `/student-details?fields=id&limit=1` : "",
+    { now: !!collegeId },
   ) as any;
 
   const { data: modulesData, loading: l4 } = useFetch(
     collegeId
-      ? `/modules?fields=id&limit=1&joinConditions=${JSON.stringify({ program: { collegeId } })}`
+      ? `/modules?fields=id&limit=999999&joinConditions=${JSON.stringify({ program: { collegeId } })}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
 
   const { data: examsData, loading: l5 } = useFetch(
     collegeId
-      ? `/exams?fields=id&limit=1&joinConditions=${JSON.stringify({ program: { collegeId } })}`
+      ? `/exams?fields=id&limit=999999&joinConditions=${JSON.stringify({ program: { collegeId } })}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
 
   const { data: employeesData, loading: l6 } = useFetch(
     collegeId
-      ? `/organization-employees?fields=id&limit=1&conditions=${conditions}`
+      ? `/organization-employees?fields=id&limit=999999&conditions=${conditions}`
       : "",
-    { now: !!collegeId }
+    { now: !!collegeId },
   ) as any;
 
-  const getCount = (data: any) => data?.count ?? data?.totalRows ?? (Array.isArray(data) ? data.length : 0);
+  const getCount = (data: any) =>
+    data?.count ?? data?.totalRows ?? (Array.isArray(data) ? data.length : 0);
 
   if (orgLoading) return <Loader />;
 
   const stats = [
-    { title: "Total Programs", icon: GraduationCap, count: getCount(programsData), loading: l1, href: "/org/programs" },
-    { title: "Total Batches", icon: Layers, count: getCount(batchesData), loading: l2, href: "/org/batches" },
-    { title: "Total Students", icon: Users, count: getCount(studentsData), loading: l3, href: "/org/students" },
-    { title: "Total Courses", icon: BookOpen, count: getCount(modulesData), loading: l4, href: "/org/courses" },
-    { title: "Total Exams", icon: FileText, count: getCount(examsData), loading: l5, href: "/org/exams" },
-    { title: "Total Employees", icon: UserCog, count: getCount(employeesData), loading: l6, href: "/org/employees" },
+    {
+      title: "Total Programs",
+      icon: GraduationCap,
+      count: getCount(programsData),
+      loading: l1,
+      href: "/org/programs",
+    },
+    {
+      title: "Total Batches",
+      icon: Layers,
+      count: getCount(batchesData),
+      loading: l2,
+      href: "/org/batches",
+    },
+    {
+      title: "Total Students",
+      icon: Users,
+      count: getCount(studentsData),
+      loading: l3,
+      href: "/org/students",
+    },
+    {
+      title: "Total Courses",
+      icon: BookOpen,
+      count: getCount(modulesData),
+      loading: l4,
+      href: "/org/courses",
+    },
+    {
+      title: "Total Exams",
+      icon: FileText,
+      count: getCount(examsData),
+      loading: l5,
+      href: "/org/exams",
+    },
+    {
+      title: "Total Employees",
+      icon: UserCog,
+      count: getCount(employeesData),
+      loading: l6,
+      href: "/org/employees",
+    },
   ];
 
   const quickActions = [

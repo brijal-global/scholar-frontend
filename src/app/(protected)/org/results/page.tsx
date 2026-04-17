@@ -99,7 +99,7 @@ export default function ResultsPage() {
     setEdits({});
     try {
       const res = await fetchApi(
-        `/results-by-group?examId=${examId}&groupId=${groupId}`,
+        `/results-by-group?examId=${examId}&groupId=${groupId}&limit=999999`,
       );
       const data: ResultsData = res?.data ?? res;
       setResultsData(data);

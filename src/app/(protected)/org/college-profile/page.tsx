@@ -6,6 +6,7 @@ import { useOrg, usePermission } from "@/contexts/OrgContext";
 import fetchApi from "@/lib/axios";
 import { toast } from "react-toastify";
 import Loader from "@/components/ui/Loader";
+import { Modal } from "antd";
 
 const COLLEGE_TYPES = [
   { value: "private", label: "Private" },
@@ -59,6 +60,8 @@ export default function CollegeProfilePage() {
     description: "",
   });
   const [saving, setSaving] = useState(false);
+  const [loadingDummy, setLoadingDummy] = useState(false);
+  const [dummyResult, setDummyResult] = useState<any>(null);
 
   useEffect(() => {
     if (collegeData) {
@@ -83,6 +86,33 @@ export default function CollegeProfilePage() {
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleLoadDummyData = async () => {
+    Modal.confirm({
+      title: "Load Dummy Data",
+      content:
+        "This will generate 25 programs, 50 batches, 100 groups, 1000 students, attendance records, exams, module marks, and remarks into your college. This may take a minute. Continue?",
+      okText: "Yes, Load Data",
+      cancelText: "Cancel",
+      onOk: async () => {
+        setLoadingDummy(true);
+        try {
+          const res = await fetchApi("/load-dummy-data", {
+            method: "GET",
+            timeout: 300000,
+            showErrorToast: true,
+          });
+          if (res?.success !== false && res?.data) {
+            setDummyResult(res.data);
+          }
+        } catch {
+          toast.error("Failed to load dummy data");
+        } finally {
+          setLoadingDummy(false);
+        }
+      },
+    });
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +142,104 @@ export default function CollegeProfilePage() {
 
   return (
     <div className="max-w-3xl space-y-6">
+      {/* Dummy Data Section */}
+      <Section title="Developer Tools">
+        <div className="flex items-start gap-4">
+          <div className="flex-1">
+            <p className="text-sm text-gray-600">
+              Populate your college with realistic dummy data for testing and
+              demonstration purposes. This generates programs, batches, groups,
+              students, attendance records, exams, results, and remarks.
+            </p>
+            <p className="text-xs text-amber-600 mt-1 font-medium">
+              Warning: This action cannot be undone and may take up to 2 minutes
+              to complete.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleLoadDummyData}
+            disabled={loadingDummy}
+            className="shrink-0 flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm py-2.5 px-5 rounded-lg transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loadingDummy ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8H4z"
+                  />
+                </svg>
+                Loading...
+              </>
+            ) : (
+              "Load Dummy Data"
+            )}
+          </button>
+        </div>
+      </Section>
+
+      {/* Dummy Data Result Modal */}
+      <Modal
+        open={!!dummyResult}
+        onCancel={() => setDummyResult(null)}
+        footer={
+          <button
+            onClick={() => setDummyResult(null)}
+            className="bg-primary text-white text-sm py-2 px-5 rounded-lg"
+          >
+            Close
+          </button>
+        }
+        title="Dummy Data Loaded Successfully"
+        width={480}
+      >
+        {dummyResult && (
+          <div className="space-y-3 py-2">
+            <p className="text-sm text-gray-600">
+              The following records were created for your college:
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ["Programs", dummyResult.programs],
+                ["Batches", dummyResult.batches],
+                ["Groups", dummyResult.groups],
+                ["Modules", dummyResult.modules],
+                ["Students", dummyResult.students],
+                ["Attendance Records", dummyResult.attendanceRecords],
+                ["Exams", dummyResult.exams],
+                ["Exam Modules", dummyResult.examModules],
+                ["Module Marks", dummyResult.moduleMarks],
+                ["Student Remarks", dummyResult.studentRemarks],
+              ].map(([label, count]) => (
+                <div
+                  key={label as string}
+                  className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2"
+                >
+                  <span className="text-xs text-gray-600">{label}</span>
+                  <span className="text-sm font-semibold text-primary">
+                    {(count as number)?.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
+
       <Section title="College Profile">
         <form onSubmit={handleSave}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

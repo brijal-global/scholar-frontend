@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Table from "@/components/ui/Table";
 import { useOrg } from "@/contexts/OrgContext";
 import useFetch from "@/hooks/useFetch";
@@ -536,6 +537,7 @@ function StudentDetailView({
 export default function StudentsPage() {
   const { collegeId, loading: orgLoading } = useOrg();
   const { canCreate } = usePermission("students");
+  const router = useRouter();
   const [selectedProgramId, setSelectedProgramId] = useState("");
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -753,6 +755,17 @@ export default function StudentsPage() {
         open={!!viewItem}
         onCancel={() => setViewItem(null)}
         footer={[
+          <button
+            key="analytics"
+            onClick={() => {
+              if (viewItem?.id) {
+                router.push(`/org/students/${viewItem.id}`);
+              }
+            }}
+            className="bg-indigo-600 text-white text-sm py-2 px-4 rounded-md hover:bg-indigo-700 transition"
+          >
+            View Full Analytics
+          </button>,
           <button
             key="edit"
             onClick={() => {
